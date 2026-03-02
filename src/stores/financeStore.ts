@@ -5,12 +5,11 @@ import type { FinanceFilters, FinanceSummary } from '../services/finance.service
 
 interface FinanceState {
   finances: Finance[];
-  summary: FinanceSummary | null; // Aquí guardamos los totales
+  summary: FinanceSummary | null; 
   isLoading: boolean;
   error: string | null;
   filters: FinanceFilters;
 
-  // Acciones que la pantalla podrá pedir
   fetchFinances: (filters?: FinanceFilters) => Promise<void>;
   fetchSummary: () => Promise<void>;
   addFinance: (data: Partial<Finance>) => Promise<void>;
@@ -25,7 +24,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   error: null,
   filters: {},
 
-  // Traer el historial de movimientos
   fetchFinances: async (newFilters) => {
     try {
       set({ isLoading: true, error: null });
@@ -39,7 +37,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     }
   },
 
-  // Traer la calculadora de totales
   fetchSummary: async () => {
     try {
       const summary = await financeService.getSummary();
@@ -49,37 +46,62 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     }
   },
 
-  // Añadir un movimiento
   addFinance: async (data) => {
+    // ⚡ SOLUCIÓN: ACTUALIZACIÓN OPTIMISTA (Elimina el Lag Visual)
+    const tempAmount = Number(data.amount) || 0;
+    const tempFinance = { 
+      ...data, 
+      _id: Date.now().toString(), 
+      amount: tempAmount,
+      date: data.date || new Date().toISOString()
+    } as Finance;
+    
+    set((state) => ({
+      finances: [tempFinance, ...state.finances],
+      summary: state.summary ? {
+        totalIncome: state.summary.totalIncome + (tempFinance.type === 'ingreso' ? tempAmount : 0),
+        totalExpenses: state.summary.totalExpenses + (tempFinance.type === 'gasto' ? tempAmount : 0),
+        netProfit: state.summary.netProfit + (tempFinance.type === 'ingreso' ? tempAmount : -tempAmount)
+      } : null,
+      isLoading: false
+    }));
+
     try {
-      set({ isLoading: true, error: null });
       await financeService.createFinance(data);
-      
-      // EL TRUCO MAGNÍFICO: Cuando creamos uno nuevo, actualizamos la lista Y la calculadora a la vez
-      await get().fetchFinances(get().filters);
-      await get().fetchSummary(); 
+      // Actualizamos los datos reales de fondo de manera invisible
+      get().fetchFinances(get().filters); 
+      get().fetchSummary();
     } catch (error: any) {
-      set({ error: error.response?.data?.message || 'Error al registrar movimiento', isLoading: false });
+      set({ error: error.response?.data?.message || 'Error al registrar movimiento' });
       throw error;
     }
   },
 
-  // Eliminar un movimiento
   deleteFinance: async (id) => {
+    // ⚡ ACTUALIZACIÓN OPTIMISTA AL BORRAR
+    const previousFinances = get().finances;
+    const financeToDelete = previousFinances.find(f => f._id === id);
+    
+    set((state) => ({
+       finances: state.finances.filter(f => f._id !== id),
+       summary: state.summary && financeToDelete ? {
+          totalIncome: state.summary.totalIncome - (financeToDelete.type === 'ingreso' ? financeToDelete.amount : 0),
+          totalExpenses: state.summary.totalExpenses - (financeToDelete.type === 'gasto' ? financeToDelete.amount : 0),
+          netProfit: state.summary.netProfit - (financeToDelete.type === 'ingreso' ? financeToDelete.amount : -financeToDelete.amount)
+       } : state.summary,
+       isLoading: false
+    }));
+
     try {
-      set({ isLoading: true, error: null });
       await financeService.deleteFinance(id);
-      
-      // Igual aquí: si borramos un gasto, los totales deben recalcularse
-      await get().fetchFinances(get().filters);
-      await get().fetchSummary();
+      get().fetchFinances(get().filters);
+      get().fetchSummary();
     } catch (error: any) {
-      set({ error: error.response?.data?.message || 'Error al eliminar registro', isLoading: false });
+      set({ finances: previousFinances, error: error.response?.data?.message || 'Error al eliminar registro' });
       throw error;
     }
   },
 
-  // Cambiar los filtros de búsqueda y recargar
   setFilters: (newFilters) => {
     set((state) => ({ filters: { ...state.filters, ...newFilters } }));
     get().fetchFinances();

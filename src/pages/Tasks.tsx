@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useTaskStore } from '../stores/taskStores';
-import { Plus, CheckSquare, Search, Edit2, Trash2, CheckCircle2, LayoutList, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Archive, XCircle, Clock, X } from 'lucide-react';
+import { Plus, CheckSquare, Search, Edit2, Trash2, CheckCircle2, LayoutList, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Archive, XCircle, Clock, X, KanbanSquare } from 'lucide-react';
 import TaskModal from '../components/crm/TaskModal';
-import type { Task } from '../types';
+import type { Task, TaskStatus } from '../types';
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 10 },
@@ -23,9 +23,11 @@ export default function Tasks() {
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
   const [agendaDate, setAgendaDate] = useState<string | null>(null);
 
-  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'archive'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar' | 'archive'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
@@ -53,6 +55,41 @@ export default function Tasks() {
     }
   };
 
+  // --- LÓGICA DRAG & DROP (KANBAN Y CALENDARIO) ---
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedTaskId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); 
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // Caída en el Kanban (Cambia el estado)
+  const handleDropKanban = async (e: React.DragEvent, newStatus: TaskStatus) => {
+    e.preventDefault();
+    if (draggedTaskId) {
+      const task = tasks.find(t => t._id === draggedTaskId);
+      if (task && task.status !== newStatus) {
+        await updateTask(draggedTaskId, { status: newStatus });
+      }
+      setDraggedTaskId(null);
+    }
+  };
+
+  // 👈 NUEVO: Caída en el Calendario (Cambia la fecha)
+  const handleDropCalendar = async (e: React.DragEvent, newDateString: string) => {
+    e.preventDefault();
+    if (draggedTaskId) {
+      const task = tasks.find(t => t._id === draggedTaskId);
+      if (task && task.dueDate !== newDateString) {
+        await updateTask(draggedTaskId, { dueDate: newDateString });
+      }
+      setDraggedTaskId(null);
+    }
+  };
+
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -67,8 +104,14 @@ export default function Tasks() {
   const allFilteredTasks = tasks.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
   const agendaTasks = agendaDate ? allFilteredTasks.filter(t => t.dueDate?.startsWith(agendaDate)).sort((a, b) => (a.dueTime || '24:00').localeCompare(b.dueTime || '24:00')) : [];
 
+  const kanbanColumns: { id: TaskStatus; title: string; count: number }[] = [
+    { id: 'pending', title: 'Pendientes', count: allFilteredTasks.filter(t => t.status === 'pending').length },
+    { id: 'in progress', title: 'En Progreso', count: allFilteredTasks.filter(t => t.status === 'in progress').length },
+    { id: 'completed', title: 'Completadas', count: allFilteredTasks.filter(t => t.status === 'completed').length }
+  ];
+
   return (
-    <div className="space-y-8 pb-10 max-w-6xl mx-auto transition-colors duration-300">
+    <div className="space-y-8 pb-10 max-w-7xl mx-auto transition-colors duration-300">
       
       {/* CABECERA */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
@@ -93,14 +136,20 @@ export default function Tasks() {
 
       {/* PESTAÑAS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-px gap-4">
-        <div className="flex items-center space-x-2">
-          <button onClick={() => setViewMode('list')} className={`flex items-center px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'list' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
-            <LayoutList className="w-4 h-4 mr-2" /> Activas <span className="ml-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 py-0.5 px-2 rounded-full text-xs">{activeTasks.length}</span>
+        <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto">
+          <button onClick={() => setViewMode('list')} className={`flex items-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'list' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
+            <LayoutList className="w-4 h-4 mr-2" /> Lista <span className="ml-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 py-0.5 px-2 rounded-full text-xs">{activeTasks.length}</span>
           </button>
-          <button onClick={() => setViewMode('calendar')} className={`flex items-center px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'calendar' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
+          
+          <button onClick={() => setViewMode('kanban')} className={`flex items-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'kanban' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
+            <KanbanSquare className="w-4 h-4 mr-2" /> Tablero
+          </button>
+
+          <button onClick={() => setViewMode('calendar')} className={`flex items-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'calendar' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
             <CalendarIcon className="w-4 h-4 mr-2" /> Calendario
           </button>
-          <button onClick={() => setViewMode('archive')} className={`flex items-center px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'archive' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
+          
+          <button onClick={() => setViewMode('archive')} className={`flex items-center whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 ${viewMode === 'archive' ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>
             <Archive className="w-4 h-4 mr-2" /> Archivo
           </button>
         </div>
@@ -114,7 +163,7 @@ export default function Tasks() {
 
       <AnimatePresence mode="wait">
         
-        {/* LISTA DE ACTIVAS */}
+        {/* VISTA 1: LISTA */}
         {viewMode === 'list' && (
           <motion.div key="list" variants={fadeUp} initial="hidden" animate="visible" exit="exit" className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden min-h-[300px] transition-colors">
             {activeTasks.length === 0 ? (
@@ -144,7 +193,6 @@ export default function Tasks() {
                           </div>
                         </div>
                       </div>
-                      
                       <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={(e) => { e.stopPropagation(); handleEdit(task); }} className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
                         <button onClick={(e) => { e.stopPropagation(); handleDelete(task._id); }} className="p-2 text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
@@ -157,7 +205,77 @@ export default function Tasks() {
           </motion.div>
         )}
 
-        {/* ARCHIVO */}
+        {/* VISTA 2: TABLERO KANBAN */}
+        {viewMode === 'kanban' && (
+          <motion.div key="kanban" variants={fadeUp} initial="hidden" animate="visible" exit="exit" className="flex gap-6 overflow-x-auto pb-4 min-h-[500px]">
+            {kanbanColumns.map(column => (
+              <div 
+                key={column.id}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDropKanban(e, column.id)}
+                className="flex-shrink-0 w-80 bg-neutral-50/50 dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col transition-colors"
+              >
+                <div className="p-5 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between">
+                  <h3 className="font-bold text-neutral-900 dark:text-white flex items-center">
+                    {column.id === 'pending' && <span className="w-2.5 h-2.5 rounded-full bg-neutral-400 mr-2"></span>}
+                    {column.id === 'in progress' && <span className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></span>}
+                    {column.id === 'completed' && <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2"></span>}
+                    {column.title}
+                  </h3>
+                  <span className="px-2.5 py-0.5 bg-neutral-200/50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs font-bold">
+                    {column.count}
+                  </span>
+                </div>
+
+                <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                  <AnimatePresence>
+                    {allFilteredTasks.filter(t => t.status === column.id).map(task => (
+                      <motion.div
+                        key={task._id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                        draggable onDragStart={(e: any) => handleDragStart(e, task._id)}
+                        onClick={() => navigate(`/tasks/${task._id}`)}
+                        className={`bg-white dark:bg-[#1a1a1a] p-4 rounded-2xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${
+                          draggedTaskId === task._id ? 'opacity-50 scale-95 border-primary-500' : 'border-neutral-200/60 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                            task.priority === 'high' ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-800/50' : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700'
+                          }`}>
+                            {task.priority}
+                          </span>
+                          {task.status === 'completed' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                        </div>
+                        <h4 className={`font-bold mb-3 ${task.status === 'completed' ? 'text-neutral-400 dark:text-neutral-500 line-through' : 'text-neutral-900 dark:text-white'}`}>{task.title}</h4>
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                          {task.dueDate ? (
+                            <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                              <CalendarIcon className="w-3 h-3 mr-1" />
+                              {new Date(task.dueDate).toLocaleDateString('es-ES', { day:'numeric', month:'short' })}
+                            </div>
+                          ) : <div />}
+                          {task.dueTime && (
+                            <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                              <Clock className="w-3 h-3 mr-1" /> {task.dueTime}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  
+                  {column.count === 0 && (
+                    <div className="h-24 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center text-neutral-400 dark:text-neutral-500 text-sm font-medium">
+                      Arrastra tareas aquí
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* VISTA 3: ARCHIVO */}
         {viewMode === 'archive' && (
           <motion.div key="archive" variants={fadeUp} initial="hidden" animate="visible" exit="exit" className="bg-neutral-50/50 dark:bg-[#121212]/50 rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden min-h-[300px]">
              {archivedTasks.length === 0 ? (
@@ -180,7 +298,7 @@ export default function Tasks() {
           </motion.div>
         )}
 
-        {/* CALENDARIO */}
+        {/* VISTA 4: CALENDARIO */}
         {viewMode === 'calendar' && (
           <motion.div key="calendar" variants={fadeUp} initial="hidden" animate="visible" exit="exit" className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden p-6 transition-colors">
             <div className="flex items-center justify-between mb-6">
@@ -213,7 +331,10 @@ export default function Tasks() {
 
                 return (
                   <div 
-                    key={day} onClick={() => handleDayClick(dateString, tasksForDay)}
+                    key={day} 
+                    onClick={() => handleDayClick(dateString, tasksForDay)}
+                    onDragOver={handleDragOver} // 👈 Evento de calendario añadido
+                    onDrop={(e) => handleDropCalendar(e, dateString)} // 👈 Evento de calendario añadido
                     className={`min-h-[100px] p-2 rounded-xl border transition-all cursor-pointer group ${isToday ? 'border-neutral-900 dark:border-neutral-600 bg-neutral-50/30 dark:bg-neutral-800/50 ring-1 ring-neutral-900 dark:ring-neutral-600' : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 hover:shadow-sm'}`}
                   >
                     <div className="flex justify-between items-start mb-1">
@@ -224,8 +345,11 @@ export default function Tasks() {
                     <div className="space-y-1.5 mt-2">
                       {tasksForDay.map(task => (
                         <div 
-                          key={task._id} onClick={(e) => { e.stopPropagation(); navigate(`/tasks/${task._id}`); }}
-                          className={`text-xs p-1.5 rounded-md truncate font-medium border hover:scale-[1.02] transition-transform ${
+                          key={task._id} 
+                          draggable // 👈 Tarea arrastrable desde el calendario
+                          onDragStart={(e: any) => { e.stopPropagation(); handleDragStart(e, task._id); }}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/tasks/${task._id}`); }}
+                          className={`text-xs p-1.5 rounded-md truncate font-medium border hover:scale-[1.02] transition-transform cursor-grab active:cursor-grabbing ${
                             task.status === 'completed' 
                               ? 'bg-neutral-100 dark:bg-neutral-800/50 text-neutral-400 dark:text-neutral-500 border-neutral-200 dark:border-neutral-800 line-through opacity-60' 
                               : task.priority === 'high' 
@@ -255,7 +379,6 @@ export default function Tasks() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAgendaOpen(false)} className="absolute inset-0 bg-neutral-900/40 dark:bg-black/60 backdrop-blur-sm" />
             
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white dark:bg-[#121212] rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800 w-full max-w-md relative z-10 overflow-hidden flex flex-col max-h-[80vh]">
-              
               <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-start bg-neutral-50/30 dark:bg-[#1a1a1a]">
                 <div>
                   <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Agenda Diaria</h2>
@@ -280,7 +403,6 @@ export default function Tasks() {
 
                     <div className="flex-1 pb-1">
                       <h4 className={`text-sm font-bold ${task.status === 'completed' ? 'text-neutral-400 dark:text-neutral-600 line-through' : 'text-neutral-900 dark:text-white'}`}>{task.title}</h4>
-                      {task.client && <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-medium flex items-center">Cliente asignado</p>}
                     </div>
                   </div>
                 ))}

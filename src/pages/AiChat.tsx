@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, ArrowUp, Sparkles, Command } from 'lucide-react';
 import { aiService } from '../services/ai.service';
 import { useAuthStore } from '../stores/authStore';
+import DOMPurify from 'dompurify';
 
 interface Message {
   id: string;
@@ -113,7 +114,7 @@ export default function AiChat() {
               }`}>
                 {msg.role === 'ai' ? (
                   <div className="whitespace-pre-wrap font-light tracking-wide" dangerouslySetInnerHTML={{ 
-                    __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-neutral-900 dark:text-white">$1</strong>') 
+                    __html: DOMPurify.sanitize(msg.content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-neutral-900 dark:text-white">$1</strong>')) 
                   }} />
                 ) : (
                   <p className="whitespace-pre-wrap">{msg.content}</p>

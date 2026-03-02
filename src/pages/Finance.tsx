@@ -1,12 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
-import { motion} from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useFinanceStore } from '../stores/financeStore';
 import { useAuthStore } from '../stores/authStore';
-import { Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Trash2, Calendar, FileText, X, Briefcase, Building, UserCircle, Crown, Calculator } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Trash2, Calendar, FileText, X, Briefcase, Building, UserCircle, Crown, Calculator, Download } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import FinanceModal from '../components/crm/FinanceModal';
 import type { Finance } from '../types';
+
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 10 },
@@ -14,7 +17,7 @@ const fadeUp: Variants = {
 };
 
 const formatMoney = (amount: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount || 0);
-const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 
 const SummaryCard = ({ title, value, type }: { title: string, value: number, type: 'net' | 'income' | 'expense' }) => (
   <motion.div variants={fadeUp} className="bg-white dark:bg-[#121212] p-6 rounded-[2rem] shadow-sm border border-neutral-200/60 dark:border-neutral-800/60 relative overflow-hidden group transition-colors duration-300">
@@ -52,6 +55,9 @@ export default function Finance() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Finance | null>(null);
 
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [reportTimeframe, setReportTimeframe] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'all'>('monthly');
+
   const currentUserRole = (user?.preferences as any)?.role || 'god_mode';
   const [simulatorRows, setSimulatorRows] = useState(getInitialSimulator(currentUserRole));
 
@@ -66,11 +72,84 @@ export default function Finance() {
     }
   };
 
+  const filteredFinancesForReport = useMemo(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const currentMonthStr = todayStr.substring(0, 7);
+    const currentYearStr = todayStr.substring(0, 4);
+
+    const lastWeek = new Date(today);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    return finances.filter(f => {
+      if (reportTimeframe === 'daily') return f.date.startsWith(todayStr);
+      if (reportTimeframe === 'weekly') return new Date(f.date) >= lastWeek;
+      if (reportTimeframe === 'monthly') return f.date.startsWith(currentMonthStr);
+      if (reportTimeframe === 'yearly') return f.date.startsWith(currentYearStr);
+      return true; 
+    });
+  }, [finances, reportTimeframe]);
+
+  const pdfIncome = filteredFinancesForReport.filter(f => f.type === 'ingreso').reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const pdfExpense = filteredFinancesForReport.filter(f => f.type === 'gasto').reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const pdfNet = pdfIncome - pdfExpense;
+
+  const timeframeLabels = {
+    daily: 'Reporte Diario (Hoy)',
+    weekly: 'Reporte Semanal (Últimos 7 días)',
+    monthly: 'Reporte Mensual',
+    yearly: 'Reporte Anual',
+    all: 'Histórico Completo'
+  };
+
+  // ⚡ SOLUCIÓN PDF MULTIPÁGINA
+  const handleDownloadReport = async () => {
+    if (filteredFinancesForReport.length === 0) {
+      alert(`No hay movimientos registrados para el período: ${timeframeLabels[reportTimeframe]}`);
+      return;
+    }
+
+    setIsGeneratingPDF(true);
+    try {
+      const reportElement = document.getElementById('financial-report-template');
+      if (!reportElement) return;
+
+      const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight(); 
+      
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // El Bucle para añadir páginas si el histórico es muy largo
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight; 
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Reporte_Financiero_${reportTimeframe}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`);
+    } catch (error) {
+      console.error("Error generando PDF", error);
+      alert("Hubo un error al generar el PDF.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   const donutData = [{ name: 'Ingresos', value: summary?.totalIncome || 0, color: '#10b981' }, { name: 'Gastos', value: summary?.totalExpenses || 0, color: '#f43f5e' }];
   const chartData = useMemo(() => {
     const groupedData: Record<string, { date: string, income: number, expense: number }> = {};
     [...finances].reverse().forEach(item => {
-      const dateKey = formatDate(item.date);
+      const dateKey = new Date(item.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
       if (!groupedData[dateKey]) groupedData[dateKey] = { date: dateKey, income: 0, expense: 0 };
       if (item.type === 'ingreso') groupedData[dateKey].income += item.amount;
       else groupedData[dateKey].expense += item.amount;
@@ -89,14 +168,12 @@ export default function Finance() {
       }
   };
 
-  const simulatorTotal = simulatorRows.reduce((acc, row) => {
-    return row.type === 'ingreso' ? acc + (row.amount || 0) : acc - (row.amount || 0);
-  }, 0);
+  const simulatorTotal = simulatorRows.reduce((acc, row) => row.type === 'ingreso' ? acc + (row.amount || 0) : acc - (row.amount || 0), 0);
 
   return (
-    <div className="space-y-8 pb-10 max-w-6xl mx-auto transition-colors duration-300">
+    <div className="space-y-8 pb-10 max-w-7xl mx-auto transition-colors duration-300 relative">
       
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
           <div className="flex items-center space-x-3 mb-1">
             <h1 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">{content.title}</h1>
@@ -107,9 +184,40 @@ export default function Finance() {
           <p className="text-sm text-neutral-500 dark:text-neutral-400 font-light">{content.subtitle}</p>
         </div>
         
-        <button onClick={() => setIsModalOpen(true)} className="px-5 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-sm flex items-center">
-          <Plus className="w-4 h-4 mr-2" /> Registrar Movimiento
-        </button>
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          
+          <div className="flex items-center bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 rounded-xl p-1 shadow-sm transition-colors">
+            <select 
+              value={reportTimeframe} 
+              onChange={(e) => setReportTimeframe(e.target.value as any)}
+              className="bg-transparent text-sm font-semibold text-neutral-700 dark:text-neutral-300 pl-3 pr-8 py-2 outline-none cursor-pointer"
+            >
+              <option value="daily" className="bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white">Hoy</option>
+              <option value="weekly" className="bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white">Última Semana</option>
+              <option value="monthly" className="bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white">Este Mes</option>
+              <option value="yearly" className="bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white">Este Año</option>
+              <option value="all" className="bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white">Todo (Histórico)</option>
+            </select>
+            
+            <button 
+              onClick={handleDownloadReport} 
+              disabled={isGeneratingPDF}
+              className="flex items-center px-3 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50"
+              title="Descargar Reporte en PDF"
+            >
+              {isGeneratingPDF ? (
+                <div className="w-4 h-4 mr-1.5 border-2 border-neutral-400 dark:border-neutral-500 border-t-neutral-900 dark:border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <Download className="w-4 h-4 mr-1.5" />
+              )}
+              PDF
+            </button>
+          </div>
+
+          <button onClick={() => setIsModalOpen(true)} className="flex-1 lg:flex-none px-5 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-md flex items-center justify-center">
+            <Plus className="w-4 h-4 mr-2" /> Movimiento
+          </button>
+        </div>
       </div>
 
       <motion.div variants={fadeUp} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -129,7 +237,6 @@ export default function Finance() {
                 <Pie data={donutData} innerRadius={65} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none" cornerRadius={4}>
                   {donutData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
-                {/* 👈 Se adapta el Tooltip del gráfico para modo oscuro mediante estilos CSS nativos en la librería */}
                 <Tooltip formatter={(value: any) => formatMoney(Number(value))} cursor={false} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20,20,20,0.9)', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }} itemStyle={{ color: '#fff' }} />
               </PieChart>
             </ResponsiveContainer>
@@ -203,7 +310,6 @@ export default function Finance() {
 
         {/* COLUMNA DERECHA */}
         {selectedTransaction ? (
-          /* DETALLE */
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full lg:w-1/3 bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-lg p-8 relative flex flex-col h-fit sticky top-24 transition-colors">
             <button onClick={() => setSelectedTransaction(null)} className="absolute top-6 right-6 p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"><X className="w-5 h-5" /></button>
             <div className="mb-8 mt-2">
@@ -226,7 +332,6 @@ export default function Finance() {
             <button onClick={() => handleDelete(selectedTransaction._id)} className="w-full py-3.5 bg-white dark:bg-transparent text-rose-600 dark:text-rose-400 font-bold rounded-xl border border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center shadow-sm"><Trash2 className="w-4 h-4 mr-2" /> Anular Movimiento</button>
           </motion.div>
         ) : (
-          /* SIMULADOR (MINI EXCEL INTELIGENTE) */
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full lg:w-1/2">
             <div className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm p-6 flex flex-col h-full transition-colors">
               <div className="flex items-center justify-between mb-2">
@@ -269,6 +374,78 @@ export default function Finance() {
       </div>
 
       <FinanceModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {/* --------------------------------------------------------------- */}
+      {/* 🧾 PLANTILLA DEL REPORTE FINANCIERO OCULTA (SOLO PDF) */}
+      {/* --------------------------------------------------------------- */}
+      <div className="overflow-hidden h-0 w-0 absolute pointer-events-none">
+        <div id="financial-report-template" className="w-[800px] bg-white text-black p-16 font-sans border-0 shadow-none">
+          
+          <div className="flex justify-between items-start border-b-2 border-neutral-200 pb-8 mb-8">
+            <div>
+              <h1 className="text-4xl font-extrabold text-neutral-900 tracking-tight mb-2">REPORTE FINANCIERO</h1>
+              <p className="text-neutral-500 font-bold uppercase tracking-wider">{timeframeLabels[reportTimeframe]}</p>
+              <p className="text-neutral-500 font-medium mt-1">Fecha de emisión: {new Date().toLocaleDateString('es-ES')}</p>
+            </div>
+            <div className="text-right">
+              <h3 className="font-bold text-lg text-neutral-900">{user?.name || 'Administración'}</h3>
+              <p className="text-neutral-500">{user?.email}</p>
+              <p className="text-neutral-500 text-sm mt-1">AI Business Manager</p>
+            </div>
+          </div>
+
+          <div className="flex space-x-6 mb-10">
+            <div className="flex-1 border-l-4 border-emerald-500 pl-4">
+              <p className="text-sm text-neutral-500 font-medium uppercase tracking-wider">Ingresos Totales</p>
+              <p className="text-3xl font-bold text-emerald-600">{pdfIncome.toFixed(2)} €</p>
+            </div>
+            <div className="flex-1 border-l-4 border-rose-500 pl-4">
+              <p className="text-sm text-neutral-500 font-medium uppercase tracking-wider">Gastos Totales</p>
+              <p className="text-3xl font-bold text-rose-600">{pdfExpense.toFixed(2)} €</p>
+            </div>
+            <div className="flex-1 border-l-4 border-neutral-900 pl-4">
+              <p className="text-sm text-neutral-500 font-medium uppercase tracking-wider">Beneficio Neto</p>
+              <p className={`text-3xl font-bold ${pdfNet >= 0 ? 'text-neutral-900' : 'text-rose-600'}`}>{pdfNet.toFixed(2)} €</p>
+            </div>
+          </div>
+
+          <h3 className="text-lg font-bold text-neutral-900 mb-4 border-b border-neutral-200 pb-2">Desglose de Movimientos</h3>
+          <table className="w-full text-left text-sm mb-12">
+            <thead className="bg-neutral-100 text-neutral-600 font-bold uppercase tracking-wider">
+              <tr>
+                <th className="px-4 py-3 rounded-tl-lg">Fecha</th>
+                <th className="px-4 py-3">Concepto</th>
+                <th className="px-4 py-3">Categoría</th>
+                <th className="px-4 py-3 text-right rounded-tr-lg">Importe</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100">
+              {filteredFinancesForReport.slice(0, 40).map(item => (
+                <tr key={item._id} className="text-neutral-800">
+                  <td className="px-4 py-4">{new Date(item.date).toLocaleDateString('es-ES')}</td>
+                  <td className="px-4 py-4 font-medium">{item.description}</td>
+                  <td className="px-4 py-4 text-neutral-500">{item.category}</td>
+                  <td className={`px-4 py-4 text-right font-bold ${item.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {item.type === 'ingreso' ? '+' : '-'}{item.amount.toFixed(2)} €
+                  </td>
+                </tr>
+              ))}
+              {filteredFinancesForReport.length > 40 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-4 text-center text-neutral-500 italic text-xs">Mostrando los últimos 40 movimientos del período.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="mt-20 pt-8 border-t border-neutral-200 text-center">
+            <p className="text-neutral-400 text-sm font-medium">Documento de uso analítico e interno. Generado automáticamente.</p>
+          </div>
+
+        </div>
+      </div>
+      {/* --------------------------------------------------------------- */}
+
     </div>
   );
 }

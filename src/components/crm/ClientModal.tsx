@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, DollarSign } from 'lucide-react';
 import { useClientStore } from '../../stores/clientStore';
 import type { Client, ClientCategory } from '../../types';
 
@@ -15,13 +15,21 @@ const CATEGORIES: ClientCategory[] = ['General', 'Prospect', 'Potencial', 'Activ
 export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCardProps) {
     const { addClient, updateClient, isLoading } = useClientStore();
 
-    const [formData, setFormData] = useState({ name: '', companyName: '', email: '', phone: '', category: 'General' as ClientCategory });
+    // 👇 NUEVO: Añadido totalValue al estado inicial
+    const [formData, setFormData] = useState({ 
+        name: '', companyName: '', email: '', phone: '', category: 'General' as ClientCategory, totalValue: 0 
+    });
 
     useEffect(() => {
         if (clientToEdit) {
-            setFormData({ name: clientToEdit.name, companyName: clientToEdit.companyName || '', email: clientToEdit.email || '', phone: clientToEdit.phone || '', category: clientToEdit.category });
+            setFormData({ 
+                name: clientToEdit.name, companyName: clientToEdit.companyName || '', 
+                email: clientToEdit.email || '', phone: clientToEdit.phone || '', 
+                category: clientToEdit.category, 
+                totalValue: (clientToEdit as any).totalValue || 0 // 👈 Cargamos el valor si existe
+            });
         } else {
-            setFormData({ name: '', companyName: '', email: '', phone: '', category: 'General' });
+            setFormData({ name: '', companyName: '', email: '', phone: '', category: 'General', totalValue: 0 });
         }
     }, [clientToEdit, isOpen]);
 
@@ -50,15 +58,26 @@ export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCar
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
                             <div>
                                 <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Nombre del Contacto *</label>
                                 <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. Ana García" />
                             </div>
-                            <div>
-                                <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Empresa</label>
-                                <input type="text" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. Tech Solutions SL" />
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Empresa / Proyecto</label>
+                                    <input type="text" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. Reforma Chalet" />
+                                </div>
+                                {/* 👇 NUEVO: Input para el Valor Total */}
+                                <div>
+                                    <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors">
+                                        <DollarSign className="w-4 h-4 mr-1" /> Valor Total (€)
+                                    </label>
+                                    <input type="number" min="0" value={formData.totalValue} onChange={(e) => setFormData({ ...formData, totalValue: Number(e.target.value) })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. 13000" />
+                                </div>
                             </div>
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
                                     <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Email</label>
@@ -69,12 +88,14 @@ export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCar
                                     <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="+34 600 000 000" />
                                 </div>
                             </div>
+
                             <div>
                                 <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Estado / Categoría</label>
                                 <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as ClientCategory })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all">
                                     {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                 </select>
                             </div>
+                            
                             <div className="pt-6 flex items-center justify-end space-x-3 border-t border-neutral-100 dark:border-neutral-800 transition-colors">
                                 <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-neutral-600 dark:text-neutral-400 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Cancelar</button>
                                 <button type="submit" disabled={isLoading} className="px-5 py-2.5 text-sm font-medium text-white dark:text-neutral-900 bg-neutral-900 dark:bg-white rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors">

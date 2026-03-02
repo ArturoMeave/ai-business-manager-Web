@@ -10,7 +10,7 @@ interface ClientState {
   totalPages: number;
   totalRecords: number;
 
-  fetchClients: (page?: number) => Promise<void>;
+  fetchClients: (page?: number, limit?: number) => Promise<void>;
   addClient: (data: Partial<Client>) => Promise<void>;
   updateClient: (id: string, data: Partial<Client>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
@@ -24,18 +24,17 @@ export const useClientStore = create<ClientState>((set, get) => ({
   totalPages: 1,
   totalRecords: 0,
 
-  fetchClients: async (page = 1) => {
+  // 👈 SOLUCIÓN BUG FANTASMA: Pedimos 1000 clientes por defecto
+  fetchClients: async (page = 1, limit = 1000) => {
     try {
       set({ isLoading: true, error: null });
-      // 👈 CORRECCIÓN 1: La función se llamaba getClients en plural
-      const response = await clientService.getClient(page);
+      const response = await clientService.getClients({ page, limit });
       
       set({ 
         clients: response.data, 
         currentPage: response.pagination.paginaActual,
         totalPages: response.pagination.totalPaginas,
-        // 👈 CORRECCIÓN 2: Añadida la "s" a totalRegistros para que no falle la tabla
-        totalRecords: response.pagination.totalRegistro,
+        totalRecords: response.pagination.totalRegistros, // 👈 CORRECCIÓN: Añadida la 's' final
         isLoading: false 
       });
     } catch (error: any) {
@@ -46,8 +45,13 @@ export const useClientStore = create<ClientState>((set, get) => ({
   addClient: async (data) => {
     try {
       set({ isLoading: true, error: null });
-      await clientService.createClient(data);
-      await get().fetchClients(get().currentPage);
+      const newClient = await clientService.createClient(data);
+      // ⚡ ACTUALIZACIÓN OPTIMISTA (0 delay)
+      set((state) => ({
+        clients: [newClient, ...state.clients],
+        totalRecords: state.totalRecords + 1,
+        isLoading: false
+      }));
     } catch (error: any) {
       set({ error: error.response?.data?.message || 'Error al crear cliente', isLoading: false });
       throw error;
@@ -55,23 +59,30 @@ export const useClientStore = create<ClientState>((set, get) => ({
   },
 
   updateClient: async (id, data) => {
+    const previousClients = get().clients;
+    // ⚡ ACTUALIZACIÓN OPTIMISTA
+    set((state) => ({
+      clients: state.clients.map(c => c._id === id ? { ...c, ...data } : c)
+    }));
     try {
-      set({ isLoading: true, error: null });
       await clientService.updateClient(id, data);
-      await get().fetchClients(get().currentPage);
     } catch (error: any) {
-      set({ error: error.response?.data?.message || 'Error al actualizar cliente', isLoading: false });
+      set({ clients: previousClients, error: error.response?.data?.message || 'Error al actualizar' });
       throw error;
     }
   },
 
   deleteClient: async (id) => {
+    const previousClients = get().clients;
+    // ⚡ ACTUALIZACIÓN OPTIMISTA
+    set((state) => ({
+      clients: state.clients.filter(c => c._id !== id),
+      totalRecords: Math.max(0, state.totalRecords - 1)
+    }));
     try {
-      set({ isLoading: true, error: null });
       await clientService.deleteClient(id);
-      await get().fetchClients(get().currentPage);
     } catch (error: any) {
-      set({ error: error.response?.data?.message || 'Error al eliminar cliente', isLoading: false });
+      set({ clients: previousClients, error: error.response?.data?.message || 'Error al eliminar' });
       throw error;
     }
   }

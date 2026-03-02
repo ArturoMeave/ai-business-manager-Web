@@ -10,9 +10,10 @@ interface TaskModalProps {
   onClose: () => void;
   taskToEdit?: Task | null;
   defaultDate?: string | null; 
+  preselectedClientId?: string; // 👈 NUEVO: Parámetro para forzar un cliente
 }
 
-export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate }: TaskModalProps) {
+export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, preselectedClientId }: TaskModalProps) {
   const { addTask, updateTask, isLoading } = useTaskStore();
   const { clients, fetchClients } = useClientStore();
 
@@ -32,19 +33,38 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate }: 
         dueDate: taskToEdit.dueDate ? new Date(taskToEdit.dueDate).toISOString().split('T')[0] : '', dueTime: taskToEdit.dueTime || '',
       });
     } else {
-      setFormData({ title: '', description: '', status: 'pending', priority: 'medium', category: 'Llamada', budget: 0, client: '', dueDate: defaultDate || new Date().toISOString().split('T')[0], dueTime: '' });
+      // 👈 NUEVO: Si recibimos un cliente preseleccionado, lo metemos directamente
+      setFormData({ 
+        title: '', description: '', status: 'pending', priority: 'medium', category: 'Llamada', budget: 0, 
+        client: preselectedClientId || '', 
+        dueDate: defaultDate || new Date().toISOString().split('T')[0], dueTime: '' 
+      });
     }
-  }, [taskToEdit, isOpen, clients.length, defaultDate]);
+  }, [taskToEdit, isOpen, clients.length, defaultDate, preselectedClientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const dataToSend = { ...formData };
-      if (!dataToSend.client || dataToSend.client === '') delete (dataToSend as any).client;
-      if (taskToEdit) await updateTask(taskToEdit._id, dataToSend);
-      else await addTask(dataToSend);
+      
+      // ⚡ SOLUCIÓN BUG 2: Si el cliente es "Ninguno" (vacío), 
+      // no borramos la variable, forzamos que se envíe vacía para que el backend la limpie.
+      if (!dataToSend.client || dataToSend.client === '') {
+          dataToSend.client = ''; 
+      }
+      
+      if (taskToEdit) {
+        await updateTask(taskToEdit._id, dataToSend);
+      } else {
+        // En la creación, si el cliente está vacío sí podemos borrar la variable para evitar errores.
+        if (dataToSend.client === '') delete (dataToSend as any).client;
+        await addTask(dataToSend);
+      }
+      
       onClose();
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+      console.error(error); 
+    }
   };
 
   return (
@@ -67,18 +87,24 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate }: 
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                <div className="sm:col-span-5">
-                  <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Cliente</label>
-                  <select value={formData.client} onChange={(e) => setFormData({ ...formData, client: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all">
-                    <option value="">Ninguno</option>
-                    {clients.map(client => <option key={client._id} value={client._id}>{client.name}</option>)}
-                  </select>
-                </div>
-                <div className="sm:col-span-4">
+                
+                {/* 👈 NUEVO: Si hay preselectedClientId, OCULTAMOS este bloque */}
+                {!preselectedClientId && (
+                  <div className="sm:col-span-5">
+                    <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Cliente</label>
+                    <select value={formData.client} onChange={(e) => setFormData({ ...formData, client: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all">
+                      <option value="">Ninguno</option>
+                      {clients.map(client => <option key={client._id} value={client._id}>{client.name}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                {/* 👇 Ajustamos el tamaño (col-span) dinámicamente si ocultamos el cliente */}
+                <div className={preselectedClientId ? "sm:col-span-7" : "sm:col-span-4"}>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors"><Calendar className="w-4 h-4 mr-1" /> Fecha</label>
                   <input type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" />
                 </div>
-                <div className="sm:col-span-3">
+                <div className={preselectedClientId ? "sm:col-span-5" : "sm:col-span-3"}>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors"><Clock className="w-4 h-4 mr-1" /> Hora</label>
                   <input type="time" value={formData.dueTime} onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" />
                 </div>

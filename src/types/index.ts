@@ -29,21 +29,20 @@ export type TaskPriority = 'low'|'medium'|'high';
 export type TaskCategory = 'Llamada'|'Reunion'|'Email'|'Reforma'|'Mantenimiento'|'Otro';
 
 export interface Task {
-    _id: string;
-    title: string;
-    description?: string;
-    specifications?: string;
-    dueDate?: string;
-    dueTime?: string,
-    status: TaskStatus;
-    priority: TaskPriority;
-    category: TaskCategory;
-    budget: number;
-    cost: number;
-    client: string;
-    owner: string;
-    createdAt: string;
-    updatedAt: string;
+  _id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  category: TaskCategory;
+  budget: number;
+  cost?: number; // 👈 NUEVO
+  client?: string | Client;
+  dueDate?: string;
+  dueTime?: string;
+  owner: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type FinanceType = 'ingreso'|'gasto';
@@ -65,9 +64,10 @@ export interface Finance {
 export type AiTone = 'motivational'|'analitycal'|'strategic';
 
 export interface UserPreferences {
-    monthlyGoal: number;
-    aiTone: AiTone;
-    themeColor?: string;
+  aiTone: 'motivational' | 'analytical' | 'strategic'; // 👈 CORREGIDO: analytical (antes ponía analitycal)
+  monthlyGoal: number;
+  themeColor: string;
+  role: 'worker' | 'freelancer' | 'company' | 'god_mode'; // 👈 AÑADIDO: Para evitar errores any
 }
 
 export interface User {
