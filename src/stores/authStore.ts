@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { User } from '../types/index';
 import { authService } from '../services/auth.service';
+import axios from 'axios'; // ⚡ IMPORTAMOS AXIOS PARA LOS ERRORES
 
 interface AuthState {
   user: User | null;
@@ -28,11 +29,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { token, user } = await authService.login({ email, password });
       localStorage.setItem('auth_token', token);
       set({ user, token, isAuthenticated: true, isLoading: false });
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || 'Error al iniciar sesión',
-        isLoading: false,
-      });
+    } catch (error) {
+      // 🧹 ADIÓS ANY DE ERRORES: Comprobamos de forma segura si es un error de Axios
+      let errorMessage = 'Error al iniciar sesión';
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      set({ error: errorMessage, isLoading: false });
       throw error;
     }
   },
@@ -43,11 +46,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { token, user } = await authService.register({ email, password, name });
       localStorage.setItem('auth_token', token);
       set({ user, token, isAuthenticated: true, isLoading: false });
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || 'Error al registrarse',
-        isLoading: false,
-      });
+    } catch (error) {
+      let errorMessage = 'Error al registrarse';
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      set({ error: errorMessage, isLoading: false });
       throw error;
     }
   },
@@ -78,8 +82,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const user = await authService.updatePreferences(preferences);
       set({ user });
-    } catch (error: any) {
-      set({ error: error.response?.data?.message || 'Error al actualizar preferencias' });
+    } catch (error) {
+      let errorMessage = 'Error al actualizar preferencias';
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      set({ error: errorMessage });
       throw error;
     }
   },

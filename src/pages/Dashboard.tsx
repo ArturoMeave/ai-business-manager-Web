@@ -1,14 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
 import { useClientStore } from '../stores/clientStore';
 import { useTaskStore } from '../stores/taskStores';
-import { useFinanceStore } from '../stores/financeStore';
-import { Users, CheckSquare, TrendingUp, Target, Plus, ArrowRight, Clock, Calendar, Briefcase, Building, UserCircle, Crown, CheckCircle2 } from 'lucide-react';
+import { api } from '../services/api';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Users, CheckSquare, TrendingUp, Target, Plus, ArrowRight, Clock, Calendar, Briefcase, Building, UserCircle, Crown, CheckCircle2, Bell, AlertCircle, PieChart } from 'lucide-react';
 import type { Task } from '../types';
-
+import type { DashboardData } from '../types';
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 15 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, staggerChildren: 0.1 } }
@@ -26,29 +27,33 @@ export default function Dashboard() {
   const { user } = useAuthStore();
   const { clients, fetchClients } = useClientStore();
   const { tasks, fetchTasks, updateTask } = useTaskStore(); 
-  const { summary, fetchSummary } = useFinanceStore();
 
   const [greeting, setGreeting] = useState('Hola');
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeChart, setActiveChart] = useState<'finance' | 'clients'>('finance');
 
   useEffect(() => {
     fetchClients();
     fetchTasks();
-    fetchSummary();
+    api.get('/dashboard').then(res => setDashboardData(res.data.data)).catch(console.error);
 
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Buenos días');
     else if (hour < 20) setGreeting('Buenas tardes');
     else setGreeting('Buenas noches');
-  }, [fetchClients, fetchTasks, fetchSummary]);
+  }, [fetchClients, fetchTasks]);
 
   const pendingTasks = tasks.filter(t => t.status !== 'completed');
   const todayTasks = pendingTasks.filter(t => t.dueDate === new Date().toISOString().split('T')[0]);
   
-  const monthlyGoal = (user?.preferences as any)?.monthlyGoal || 0;
-  const currentIncome = summary?.totalIncome || 0;
+  // 🧹 ADIÓS ANY: Leemos las preferencias de forma segura
+  const monthlyGoal = user?.preferences?.monthlyGoal || 0;
+  const currentIncome = dashboardData?.kpis?.monthlyIncome || 0;
   const progressPercent = monthlyGoal > 0 ? Math.min((currentIncome / monthlyGoal) * 100, 100) : 0;
 
-  const userRole = (user?.preferences as any)?.role || 'god_mode';
+  // 🧹 ADIÓS ANY: Leemos el rol de forma segura
+  const userRole = user?.preferences?.role || 'god_mode';
   const getRoleIcon = () => {
     switch(userRole) {
       case 'worker': return <UserCircle className="w-5 h-5 text-neutral-400" />;
@@ -63,11 +68,18 @@ export default function Dashboard() {
     await updateTask(task._id, { status: 'completed' });
   };
 
+  // NOTIFICACIONES
+  const notifications = [];
+  if (todayTasks.length > 0) notifications.push({ id: 1, title: 'Agenda Activa', text: `Tienes ${todayTasks.length} tareas que caducan hoy.`, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' });
+  if (progressPercent >= 100) notifications.push({ id: 2, title: '¡Meta Superada!', text: 'Has alcanzado tu objetivo de facturación mensual.', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' });
+  if (pendingTasks.length > 10) notifications.push({ id: 3, title: 'Alta carga de trabajo', text: `Se acumulan ${pendingTasks.length} tareas pendientes. ¡Prioriza!`, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20' });
+  if (dashboardData && dashboardData.kpis.monthlyExpenses > dashboardData.kpis.monthlyIncome) notifications.push({ id: 4, title: 'Alerta Financiera', text: 'Tus gastos superan tus ingresos este mes.', color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' });
+
   return (
     <div className="space-y-8 pb-12 max-w-6xl mx-auto">
       
-      {/* CABECERA */}
-      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-neutral-200/60 dark:border-neutral-800/60 transition-colors">
+      {/* CABECERA Y CAMPANA */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-neutral-200/60 dark:border-neutral-800/60 transition-colors relative">
         <div>
           <div className="flex items-center space-x-3 mb-2">
             {getRoleIcon()}
@@ -80,11 +92,49 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/tasks')} className="px-4 py-2.5 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-sm flex items-center">
-            <CheckSquare className="w-4 h-4 mr-2 text-neutral-400 dark:text-neutral-500" /> Tarea
-          </button>
-          <button onClick={() => navigate('/clients')} className="px-4 py-2.5 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-sm flex items-center">
-            <Users className="w-4 h-4 mr-2 text-neutral-400 dark:text-neutral-500" /> Cliente
+          
+          <div className="relative">
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)} 
+              className="p-3 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-sm relative"
+            >
+              <Bell className="w-5 h-5" />
+              {notifications.length > 0 && <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse border-2 border-white dark:border-[#121212]"></span>}
+            </button>
+
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800 z-50 overflow-hidden"
+                >
+                  <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-[#121212]">
+                    <h4 className="font-bold text-neutral-900 dark:text-white">Notificaciones</h4>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto p-2">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-neutral-500 dark:text-neutral-400 text-sm">No tienes avisos nuevos. ¡Todo en orden!</div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div key={notif.id} className="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 rounded-xl transition-colors mb-1 cursor-default">
+                          <div className="flex items-start space-x-3">
+                            <div className={`mt-0.5 p-1.5 rounded-lg ${notif.bg} ${notif.color}`}><AlertCircle className="w-4 h-4" /></div>
+                            <div>
+                              <p className="text-sm font-bold text-neutral-900 dark:text-white">{notif.title}</p>
+                              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">{notif.text}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <button onClick={() => navigate('/tasks')} className="px-4 py-2.5 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-sm hidden sm:flex items-center">
+            <CheckSquare className="w-4 h-4 mr-2 opacity-50" /> Tarea
           </button>
           <button onClick={() => navigate('/finance')} className="px-4 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-sm flex items-center">
             <Plus className="w-4 h-4 mr-2" /> Movimiento
@@ -105,11 +155,6 @@ export default function Dashboard() {
             <span className="text-5xl font-bold text-neutral-900 dark:text-white tracking-tighter transition-colors">{pendingTasks.length}</span>
             <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">pendientes</span>
           </div>
-          {todayTasks.length > 0 && (
-            <div className="mt-4 inline-flex items-center px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 rounded-lg text-xs font-bold">
-              <Clock className="w-3.5 h-3.5 mr-1.5" /> {todayTasks.length} para hoy
-            </div>
-          )}
         </motion.div>
 
         {/* WIDGET 2: CLIENTES */}
@@ -122,9 +167,6 @@ export default function Dashboard() {
           <div className="flex items-baseline space-x-2">
             <span className="text-5xl font-bold text-neutral-900 dark:text-white tracking-tighter transition-colors">{clients.length}</span>
             <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">clientes registrados</span>
-          </div>
-          <div className="mt-4 flex items-center text-sm font-semibold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform">
-            Ver cartera <ArrowRight className="w-4 h-4 ml-1" />
           </div>
         </motion.div>
 
@@ -157,6 +199,86 @@ export default function Dashboard() {
           ) : (
             <div className="mt-4 text-xs opacity-70 font-light relative z-10">Configura tu meta mensual en Ajustes.</div>
           )}
+        </motion.div>
+
+        {/* WIDGET GIGANTE 4: EL GRÁFICO */}
+        <motion.div variants={itemVariants} className="md:col-span-12 bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm p-8 transition-colors">
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center tracking-tight">
+                <PieChart className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" /> Rendimiento Histórico
+              </h3>
+              <p className="text-sm text-neutral-500 mt-1 font-light">Evolución de los últimos 6 meses</p>
+            </div>
+            
+            {/* INTERRUPTOR */}
+            <div className="flex items-center bg-neutral-100 dark:bg-neutral-800 p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700">
+              <button 
+                onClick={() => setActiveChart('finance')}
+                className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeChart === 'finance' ? 'bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
+              >
+                Finanzas
+              </button>
+              <button 
+                onClick={() => setActiveChart('clients')}
+                className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeChart === 'clients' ? 'bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}
+              >
+                Nuevos Clientes
+              </button>
+            </div>
+          </div>
+          
+          <div className="h-72 w-full">
+            {!dashboardData?.chartData ? (
+              <div className="w-full h-full flex items-center justify-center text-neutral-400">Cargando gráfico...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {activeChart === 'finance' ? (
+                  <AreaChart data={dashboardData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorIngreso" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorGasto" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" strokeOpacity={0.1} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dx={-10} tickFormatter={(value) => `${value}€`} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1a1a1a', borderRadius: '12px', border: 'none', color: '#fff', fontWeight: 'bold' }} 
+                      itemStyle={{ color: '#fff' }}
+                      formatter={(value) => [`${value} €`]}
+                    />
+                    <Area type="monotone" dataKey="ingresos" name="Ingresos" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIngreso)" />
+                    <Area type="monotone" dataKey="gastos" name="Gastos" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorGasto)" />
+                  </AreaChart>
+                ) : (
+                  <AreaChart data={dashboardData.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorClientes" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" strokeOpacity={0.1} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dx={-10} allowDecimals={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1a1a1a', borderRadius: '12px', border: 'none', color: '#fff', fontWeight: 'bold' }} 
+                      itemStyle={{ color: '#fff' }}
+                      formatter={(value) => [`${value} clientes`, 'Nuevos Clientes']}
+                    />
+                    <Area type="monotone" dataKey="nuevosClientes" name="Nuevos Clientes" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorClientes)" />
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
+            )}
+          </div>
         </motion.div>
 
       </motion.div>

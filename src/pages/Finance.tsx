@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useFinanceStore } from '../stores/financeStore';
 import { useAuthStore } from '../stores/authStore';
-import { Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Trash2, Calendar, FileText, X, Briefcase, Building, UserCircle, Crown, Calculator, Download } from 'lucide-react';
+import { api } from '../services/api';
+import { Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Trash2, Calendar, FileText, X, Briefcase, Building, UserCircle, Crown, Calculator, Download, Upload, UploadCloud } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import FinanceModal from '../components/crm/FinanceModal';
-import type { Finance } from '../types';
+import type { Finance, FinanceStatus, FinanceType } from '../types';
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -40,28 +41,42 @@ const ROLE_CONTENT = {
   god_mode: { title: "Panel Financiero", subtitle: "Visión absoluta de todos los movimientos y categorías.", net: "Balance Total", income: "Ingresos Globales", expense: "Gastos Globales", empty: "Libro mayor vacío. Registra tu primer movimiento." }
 };
 
-const getInitialSimulator = (role: string) => {
-  switch(role) {
-    case 'worker': return [ { id: 1, type: 'ingreso', name: 'Sueldo Base Mensual', amount: 1800 }, { id: 2, type: 'gasto', name: 'Alquiler / Hipoteca', amount: 650 }, { id: 3, type: 'gasto', name: 'Gastos de Luz y Agua', amount: 120 } ];
-    case 'freelancer': return [ { id: 1, type: 'ingreso', name: 'Previsión de Facturación', amount: 3500 }, { id: 2, type: 'gasto', name: 'Cuota de Autónomos', amount: 295 }, { id: 3, type: 'gasto', name: 'Apartado IRPF (20%)', amount: 700 } ];
-    case 'company': return [ { id: 1, type: 'ingreso', name: 'Previsión Ventas B2B', amount: 15000 }, { id: 2, type: 'gasto', name: 'Nóminas (Ej. Juan, María)', amount: 3800 }, { id: 3, type: 'gasto', name: 'Alquiler Oficina', amount: 1200 } ];
-    default: return [ { id: 1, type: 'ingreso', name: 'Fondo Inicial', amount: 5000 }, { id: 2, type: 'gasto', name: 'Gasto Previsto', amount: 1000 } ];
-  }
-};
+// Generador de IDs únicos seguros
+const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
 export default function Finance() {
-  const { finances, summary, isLoading, fetchFinances, fetchSummary, deleteFinance } = useFinanceStore();
+  const { finances, summary, isLoading, fetchFinances, fetchSummary, deleteFinance, addFinance } = useFinanceStore();
   const { user, loadUser } = useAuthStore(); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Finance | null>(null);
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false); 
   const [reportTimeframe, setReportTimeframe] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'all'>('monthly');
 
-  const currentUserRole = (user?.preferences as any)?.role || 'god_mode';
-  const [simulatorRows, setSimulatorRows] = useState(getInitialSimulator(currentUserRole));
+  const currentUserRole = user?.preferences?.role || 'god_mode';
+  
+  // ⚡ SOLUCIÓN BUG: MEMORIA PERSISTENTE DE VERDAD
+  const [simulatorRows, setSimulatorRows] = useState<{id: string, type: FinanceType, name: string, amount: number}[]>(() => {
+    const saved = localStorage.getItem('ai_manager_simulator');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    // Si no hay nada guardado, mostramos dos de ejemplo
+    return [
+      { id: generateId(), type: 'ingreso', name: 'Ej. Ingreso Previsto', amount: 1000 },
+      { id: generateId(), type: 'gasto', name: 'Ej. Gasto Previsto', amount: 200 }
+    ];
+  });
 
-  useEffect(() => { setSimulatorRows(getInitialSimulator(currentUserRole)); }, [currentUserRole]);
+  // Guardamos cada cambio en el navegador al instante
+  useEffect(() => {
+    localStorage.setItem('ai_manager_simulator', JSON.stringify(simulatorRows));
+  }, [simulatorRows]);
+
   useEffect(() => { fetchSummary(); fetchFinances(); }, [fetchSummary, fetchFinances]);
   useEffect(() => { if(!user) loadUser(); }, [user, loadUser]);
 
@@ -72,12 +87,77 @@ export default function Finance() {
     }
   };
 
+  // ⚡ NUEVA FUNCIÓN: Subir UNA SOLA FILA a la base de datos real
+  const handleUploadRow = async (row: {id: string, type: FinanceType, name: string, amount: number}) => {
+    if (!row.name || row.amount <= 0) {
+      alert("Añade un nombre y una cantidad mayor a 0 antes de subirlo.");
+      return;
+    }
+    try {
+      await addFinance({
+        type: row.type,
+        amount: row.amount,
+        description: row.name,
+        category: 'Otros', // Categoría genérica
+        status: 'completado', // 👈 Lo marcamos completado para que sume/reste al instante
+        date: new Date().toISOString().split('T')[0]
+      });
+      // Lo borramos del simulador porque ya es real
+      setSimulatorRows(prev => prev.filter(r => r.id !== row.id));
+    } catch (error) {
+      console.error(error);
+      alert('Error al subir el movimiento.');
+    }
+  };
+
+  // ⚡ NUEVA FUNCIÓN: Subir TODO a la base de datos real
+  const handleUploadAll = async () => {
+    const validRows = simulatorRows.filter(r => r.name && r.amount > 0);
+    if (validRows.length === 0) return;
+    
+    if (!window.confirm(`¿Subir estos ${validRows.length} conceptos a tu balance real?`)) return;
+    
+    try {
+      for (const row of validRows) {
+        await addFinance({
+          type: row.type,
+          amount: row.amount,
+          description: row.name,
+          category: 'Otros',
+          status: 'completado',
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
+      setSimulatorRows([]); // Vaciamos el simulador
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDownloadInvoice = async (financeId: string) => {
+    try {
+      setIsDownloadingInvoice(true);
+      const response = await api.get(`/finance/${financeId}/invoice`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Factura_${financeId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      if (link.parentNode) link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error("Error al descargar factura", error);
+      alert("Hubo un error al generar la factura.");
+    } finally {
+      setIsDownloadingInvoice(false);
+    }
+  };
+
   const filteredFinancesForReport = useMemo(() => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     const currentMonthStr = todayStr.substring(0, 7);
     const currentYearStr = todayStr.substring(0, 4);
-
     const lastWeek = new Date(today);
     lastWeek.setDate(lastWeek.getDate() - 7);
 
@@ -102,13 +182,11 @@ export default function Finance() {
     all: 'Histórico Completo'
   };
 
-  // ⚡ SOLUCIÓN PDF MULTIPÁGINA
   const handleDownloadReport = async () => {
     if (filteredFinancesForReport.length === 0) {
       alert(`No hay movimientos registrados para el período: ${timeframeLabels[reportTimeframe]}`);
       return;
     }
-
     setIsGeneratingPDF(true);
     try {
       const reportElement = document.getElementById('financial-report-template');
@@ -128,14 +206,12 @@ export default function Finance() {
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
       heightLeft -= pageHeight;
 
-      // El Bucle para añadir páginas si el histórico es muy largo
       while (heightLeft > 0) {
         position = heightLeft - imgHeight; 
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-
       pdf.save(`Reporte_Financiero_${reportTimeframe}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`);
     } catch (error) {
       console.error("Error generando PDF", error);
@@ -158,7 +234,6 @@ export default function Finance() {
   }, [finances]);
 
   const content = ROLE_CONTENT[currentUserRole as keyof typeof ROLE_CONTENT] || ROLE_CONTENT['god_mode'];
-
   const getRoleBadge = (role: string) => {
       switch(role) {
           case 'freelancer': return <><Briefcase className="w-3.5 h-3.5 mr-1.5" /> Autónomo</>;
@@ -185,11 +260,10 @@ export default function Finance() {
         </div>
         
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          
           <div className="flex items-center bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 rounded-xl p-1 shadow-sm transition-colors">
             <select 
               value={reportTimeframe} 
-              onChange={(e) => setReportTimeframe(e.target.value as any)}
+              onChange={(e) => setReportTimeframe(e.target.value as 'daily' | 'weekly' | 'monthly' | 'yearly' | 'all')}
               className="bg-transparent text-sm font-semibold text-neutral-700 dark:text-neutral-300 pl-3 pr-8 py-2 outline-none cursor-pointer"
             >
               <option value="daily" className="bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white">Hoy</option>
@@ -203,7 +277,6 @@ export default function Finance() {
               onClick={handleDownloadReport} 
               disabled={isGeneratingPDF}
               className="flex items-center px-3 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50"
-              title="Descargar Reporte en PDF"
             >
               {isGeneratingPDF ? (
                 <div className="w-4 h-4 mr-1.5 border-2 border-neutral-400 dark:border-neutral-500 border-t-neutral-900 dark:border-t-white rounded-full animate-spin"></div>
@@ -308,7 +381,7 @@ export default function Finance() {
           )}
         </div>
 
-        {/* COLUMNA DERECHA */}
+        {/* COLUMNA DERECHA: DETALLE / SIMULADOR */}
         {selectedTransaction ? (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full lg:w-1/3 bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-lg p-8 relative flex flex-col h-fit sticky top-24 transition-colors">
             <button onClick={() => setSelectedTransaction(null)} className="absolute top-6 right-6 p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"><X className="w-5 h-5" /></button>
@@ -329,45 +402,93 @@ export default function Finance() {
                 <div><p className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1">Estado</p><p className="text-sm font-semibold text-neutral-900 dark:text-white capitalize">{selectedTransaction.status}</p></div>
               </div>
             </div>
-            <button onClick={() => handleDelete(selectedTransaction._id)} className="w-full py-3.5 bg-white dark:bg-transparent text-rose-600 dark:text-rose-400 font-bold rounded-xl border border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center shadow-sm"><Trash2 className="w-4 h-4 mr-2" /> Anular Movimiento</button>
+            
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => handleDownloadInvoice(selectedTransaction._id)} 
+                disabled={isDownloadingInvoice}
+                className="w-full py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center justify-center shadow-sm disabled:opacity-50"
+              >
+                {isDownloadingInvoice ? (
+                  <div className="w-4 h-4 mr-2 border-2 border-neutral-400 dark:border-neutral-500 border-t-white dark:border-t-neutral-900 rounded-full animate-spin"></div>
+                ) : (
+                  <Download className="w-4 h-4 mr-2" /> 
+                )}
+                Descargar Factura Oficial
+              </button>
+              <button 
+                onClick={() => handleDelete(selectedTransaction._id)} 
+                className="w-full py-3.5 bg-white dark:bg-transparent text-rose-600 dark:text-rose-400 font-bold rounded-xl border border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center shadow-sm"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> Anular Movimiento
+              </button>
+            </div>
           </motion.div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full lg:w-1/2">
             <div className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm p-6 flex flex-col h-full transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center tracking-tight">
-                  <Calculator className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" /> Simulador de Presupuesto
+                  <Calculator className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" /> Planificador de Presupuesto
                 </h3>
-                <button onClick={() => setSimulatorRows([...simulatorRows, { id: Date.now(), type: 'gasto', name: '', amount: 0 }])} className="p-1.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-md transition-colors"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => setSimulatorRows([...simulatorRows, { id: generateId(), type: 'gasto', name: '', amount: 0 }])} className="p-1.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-md transition-colors"><Plus className="w-4 h-4" /></button>
               </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-light mb-6">Haz cálculos rápidos sin afectar a tu contabilidad real.</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-light mb-6">Calcula tus operaciones a futuro y añádelas a tu cuenta con un clic.</p>
               
               <div className="space-y-3 flex-1">
                 {simulatorRows.map((item, index) => (
                   <div key={item.id} className="flex items-center space-x-2 group">
+                    
+                    {/* Botón cambiar tipo +/- */}
                     <button 
                       onClick={() => { const newArr = [...simulatorRows]; newArr[index].type = item.type === 'ingreso' ? 'gasto' : 'ingreso'; setSimulatorRows(newArr); }}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border transition-colors ${item.type === 'ingreso' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/50'}`}
+                      className={`w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center text-sm font-bold border transition-colors ${item.type === 'ingreso' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/50'}`}
                     >
                       {item.type === 'ingreso' ? '+' : '-'}
                     </button>
-                    <input type="text" placeholder="Concepto..." value={item.name} onChange={(e) => { const newArr = [...simulatorRows]; newArr[index].name = e.target.value; setSimulatorRows(newArr); }} className="flex-1 px-3 py-2 text-sm bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-white focus:bg-white dark:focus:bg-black rounded-lg transition-all outline-none font-medium text-neutral-700 dark:text-neutral-200" />
-                    <div className="relative w-28">
+                    
+                    {/* Inputs de Nombre y Cantidad */}
+                    <input type="text" placeholder="Concepto..." value={item.name} onChange={(e) => { const newArr = [...simulatorRows]; newArr[index].name = e.target.value; setSimulatorRows(newArr); }} className="flex-1 min-w-0 px-3 py-2 text-sm bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-white focus:bg-white dark:focus:bg-black rounded-lg transition-all outline-none font-medium text-neutral-700 dark:text-neutral-200" />
+                    
+                    <div className="relative w-24 sm:w-28 flex-shrink-0">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 text-sm font-medium">€</span>
-                      <input type="number" value={item.amount || ''} onChange={(e) => { const newArr = [...simulatorRows]; newArr[index].amount = Number(e.target.value); setSimulatorRows(newArr); }} className={`w-full pl-7 pr-3 py-2 text-sm font-bold bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-white focus:bg-white dark:focus:bg-black rounded-lg transition-all outline-none ${item.type === 'ingreso' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} />
+                      <input type="number" value={item.amount || ''} onChange={(e) => { const newArr = [...simulatorRows]; newArr[index].amount = Number(e.target.value); setSimulatorRows(newArr); }} className={`w-full pl-7 pr-1 sm:pr-3 py-2 text-sm font-bold bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-white focus:bg-white dark:focus:bg-black rounded-lg transition-all outline-none ${item.type === 'ingreso' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} />
                     </div>
-                    <button onClick={() => setSimulatorRows(simulatorRows.filter(t => t.id !== item.id))} className="p-2 text-neutral-300 dark:text-neutral-600 hover:text-red-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
+
+                    {/* ⚡ NUEVO: BOTÓN INDIVIDUAL DE SUBIR A LA CUENTA */}
+                    <button 
+                      onClick={() => handleUploadRow(item)} 
+                      title="Añadir a mis cuentas reales" 
+                      className="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+
+                    {/* Eliminar fila */}
+                    <button onClick={() => setSimulatorRows(simulatorRows.filter(t => t.id !== item.id))} className="p-2 text-neutral-300 dark:text-neutral-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 ))}
-                {simulatorRows.length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500 italic text-center py-4">Añade conceptos para calcular.</p>}
+                {simulatorRows.length === 0 && <p className="text-sm text-neutral-400 dark:text-neutral-500 italic text-center py-4">Añade conceptos para planificar tu mes.</p>}
               </div>
 
-              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-                <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Total Calculado</span>
-                <span className={`text-2xl font-bold tracking-tight px-4 py-1.5 rounded-xl ${simulatorTotal >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400'}`}>
-                  {formatMoney(simulatorTotal)}
-                </span>
+              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-neutral-800 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Total Planificado</span>
+                  <span className={`text-2xl font-bold tracking-tight px-4 py-1.5 rounded-xl ${simulatorTotal >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400'}`}>
+                    {formatMoney(simulatorTotal)}
+                  </span>
+                </div>
+                
+                {/* ⚡ NUEVO BOTÓN PARA SUBIRLO TODO DE GOLPE */}
+                <button 
+                  onClick={handleUploadAll}
+                  disabled={simulatorRows.length === 0}
+                  className="w-full py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center justify-center shadow-sm disabled:opacity-50"
+                >
+                  <UploadCloud className="w-4 h-4 mr-2" /> Subir Todo a mi Cuenta Real
+                </button>
               </div>
+
             </div>
           </motion.div>
         )}

@@ -64,10 +64,14 @@ export interface Finance {
 export type AiTone = 'motivational'|'analitycal'|'strategic';
 
 export interface UserPreferences {
-  aiTone: 'motivational' | 'analytical' | 'strategic'; // 👈 CORREGIDO: analytical (antes ponía analitycal)
+  aiTone: 'motivational' | 'analytical' | 'strategic'; 
   monthlyGoal: number;
   themeColor: string;
-  role: 'worker' | 'freelancer' | 'company' | 'god_mode'; // 👈 AÑADIDO: Para evitar errores any
+  role: 'worker' | 'freelancer' | 'company' | 'god_mode'; 
+  companyName?: string;
+  taxId?: string;
+  address?: string;
+  currency?: '€' | '$' | '£';
 }
 
 export interface User {
@@ -82,4 +86,29 @@ export interface User {
 export interface AuthResponse {
     token: string;
     user: User;
+}
+
+export interface DashboardKpis {
+  netProfit: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  moneyAtStake: number;
+  activeClients: number;
+  totalClients: number;
+  pendingTasks: number;
+  completedTasks: number;
+}
+
+export interface ChartDataPoint {
+  name: string;
+  month: number;
+  year: number;
+  ingresos: number;
+  gastos: number;
+  nuevosClientes: number;
+}
+
+export interface DashboardData {
+  kpis: DashboardKpis;
+  chartData: ChartDataPoint[];
 }

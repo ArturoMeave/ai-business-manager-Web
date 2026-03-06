@@ -15,7 +15,9 @@ const fadeUp: Variants = {
 
 export default function Tasks() {
   const navigate = useNavigate();
-  const { tasks, isLoading, fetchTasks, deleteTask, updateTask } = useTaskStore();
+  
+  // ⚡ NUEVO: Extraemos la paginación y los filtros de tu tienda
+  const { tasks, isLoading, fetchTasks, deleteTask, updateTask, currentPage, totalPages, totalRecords, setFilters } = useTaskStore();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
@@ -30,6 +32,10 @@ export default function Tasks() {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+  // ⚡ NUEVAS FUNCIONES: Manejadores de los botones de paginación
+  const handlePrevPage = () => { if (currentPage > 1) setFilters({ page: currentPage - 1 }); };
+  const handleNextPage = () => { if (currentPage < totalPages) setFilters({ page: currentPage + 1 }); };
 
   const handleEdit = (task: Task) => { setTaskToEdit(task); setSelectedDate(null); setIsModalOpen(true); setIsAgendaOpen(false); };
   const handleDelete = async (id: string) => { if (window.confirm('¿Eliminar esta tarea definitivamente?')) await deleteTask(id); };
@@ -55,7 +61,6 @@ export default function Tasks() {
     }
   };
 
-  // --- LÓGICA DRAG & DROP (KANBAN Y CALENDARIO) ---
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedTaskId(id);
     e.dataTransfer.effectAllowed = 'move';
@@ -66,7 +71,6 @@ export default function Tasks() {
     e.dataTransfer.dropEffect = 'move';
   };
 
-  // Caída en el Kanban (Cambia el estado)
   const handleDropKanban = async (e: React.DragEvent, newStatus: TaskStatus) => {
     e.preventDefault();
     if (draggedTaskId) {
@@ -78,7 +82,6 @@ export default function Tasks() {
     }
   };
 
-  // 👈 NUEVO: Caída en el Calendario (Cambia la fecha)
   const handleDropCalendar = async (e: React.DragEvent, newDateString: string) => {
     e.preventDefault();
     if (draggedTaskId) {
@@ -170,7 +173,7 @@ export default function Tasks() {
               <div className="p-16 text-center">
                 <CheckSquare className="w-12 h-12 text-neutral-200 dark:text-neutral-700 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Todo al día</h3>
-                <p className="text-neutral-500 dark:text-neutral-400 mt-1 font-light">No tienes tareas pendientes ahora mismo.</p>
+                <p className="text-neutral-500 dark:text-neutral-400 mt-1 font-light">No tienes tareas pendientes en esta página.</p>
               </div>
             ) : (
               <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
@@ -333,8 +336,8 @@ export default function Tasks() {
                   <div 
                     key={day} 
                     onClick={() => handleDayClick(dateString, tasksForDay)}
-                    onDragOver={handleDragOver} // 👈 Evento de calendario añadido
-                    onDrop={(e) => handleDropCalendar(e, dateString)} // 👈 Evento de calendario añadido
+                    onDragOver={handleDragOver} 
+                    onDrop={(e) => handleDropCalendar(e, dateString)} 
                     className={`min-h-[100px] p-2 rounded-xl border transition-all cursor-pointer group ${isToday ? 'border-neutral-900 dark:border-neutral-600 bg-neutral-50/30 dark:bg-neutral-800/50 ring-1 ring-neutral-900 dark:ring-neutral-600' : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 hover:shadow-sm'}`}
                   >
                     <div className="flex justify-between items-start mb-1">
@@ -346,7 +349,7 @@ export default function Tasks() {
                       {tasksForDay.map(task => (
                         <div 
                           key={task._id} 
-                          draggable // 👈 Tarea arrastrable desde el calendario
+                          draggable 
                           onDragStart={(e: any) => { e.stopPropagation(); handleDragStart(e, task._id); }}
                           onClick={(e) => { e.stopPropagation(); navigate(`/tasks/${task._id}`); }}
                           className={`text-xs p-1.5 rounded-md truncate font-medium border hover:scale-[1.02] transition-transform cursor-grab active:cursor-grabbing ${
@@ -369,6 +372,33 @@ export default function Tasks() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ⚡ NUEVO: LA BARRA INFERIOR DE PAGINACIÓN */}
+      {totalPages > 1 && (
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-[#121212] p-4 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm mt-6">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4 sm:mb-0">
+            Mostrando página <span className="font-bold text-neutral-900 dark:text-white">{currentPage}</span> de <span className="font-bold text-neutral-900 dark:text-white">{totalPages}</span> 
+            <span className="mx-2">•</span> 
+            Total: {totalRecords} tareas en tu cuenta
+          </p>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={handlePrevPage} 
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold text-neutral-700 dark:text-neutral-300 disabled:opacity-50 transition-all hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              Anterior
+            </button>
+            <button 
+              onClick={handleNextPage} 
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold text-neutral-700 dark:text-neutral-300 disabled:opacity-50 transition-all hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              Siguiente
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} taskToEdit={taskToEdit} defaultDate={selectedDate} />
 

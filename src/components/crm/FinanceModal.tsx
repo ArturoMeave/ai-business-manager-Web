@@ -17,7 +17,7 @@ const CATEGORIES_BY_ROLE = {
 export default function FinanceModal({ isOpen, onClose }: FinanceModalProps) {
   const { addFinance, isLoading } = useFinanceStore();
   const { user } = useAuthStore(); 
-  const userRole = (user?.preferences as any)?.role || 'god_mode';
+  const userRole = user?.preferences?.role || 'god_mode';
   const availableCategories = CATEGORIES_BY_ROLE[userRole as keyof typeof CATEGORIES_BY_ROLE] || CATEGORIES_BY_ROLE['god_mode'];
 
   const [formData, setFormData] = useState({ type: 'ingreso' as FinanceType, amount: '', description: '', category: availableCategories.ingreso[0], status: 'completado' as FinanceStatus, date: new Date().toISOString().split('T')[0] });

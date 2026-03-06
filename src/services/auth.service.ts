@@ -25,9 +25,19 @@ export const authService = {
         return response.data;
     },
     async updatePreferences(preferences: Partial<User['preferences']>): Promise<User> {
-        // 👇 SOLUCIÓN: Quitamos las llaves {} que envolvían a 'preferences'
-        // Así enviamos los datos puros y el Backend los entiende a la primera.
         const response = await api.put<User>('/auth/preferences', preferences);
+        return response.data;
+    },
+    async updateDetails(data: { name: string; email: string }) {
+        const response = await api.put('/auth/updatedetails', data);
+        return response.data;
+    },
+    async updatePassword(data: { currentPassword: string; newPassword: string }) {
+        const response = await api.put('/auth/updatepassword', data);
+        return response.data;
+    },
+    async deleteAccount() {
+        const response = await api.delete('/auth/delete-account');
         return response.data;
     },
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-// ⚡ Añadimos ArrowDownRight y Target para los iconos de Coste y Beneficio
 import { ArrowLeft, Calendar, Tag, AlertCircle, DollarSign, AlignLeft, CheckCircle2, Edit2, Trash2, User, FileText, Download, ArrowDownRight, Target } from 'lucide-react';
 import { useTaskStore } from '../stores/taskStores';
 import { useClientStore } from '../stores/clientStore';
@@ -25,6 +24,9 @@ export default function TaskDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [taxRate, setTaxRate] = useState(21);
+
+  // Extraemos la moneda configurada por el usuario (o Euro por defecto)
+  const currencySymbol = user?.preferences?.currency || '€';
 
   useEffect(() => {
     const loadData = async () => {
@@ -68,7 +70,7 @@ export default function TaskDetails() {
       return;
     }
     if (task.budget <= 0) {
-      alert("El cobro de esta tarea es 0€. Edita la tarea para añadir un presupuesto válido antes de facturar.");
+      alert("El cobro de esta tarea es 0. Edita la tarea para añadir un presupuesto válido antes de facturar.");
       return;
     }
 
@@ -222,7 +224,7 @@ export default function TaskDetails() {
           <div className="flex items-center group">
             <div className="w-40 flex items-center text-neutral-500 dark:text-neutral-400 text-sm font-medium"><DollarSign className="w-4 h-4 mr-2 opacity-60" /> Cobro / Presupuesto</div>
             <div className="text-sm font-bold text-neutral-900 dark:text-white">
-              {task.budget > 0 ? `${task.budget} €` : <span className="text-neutral-400 font-normal">0 € (Edita para añadir)</span>}
+              {task.budget > 0 ? `${task.budget} ${currencySymbol}` : <span className="text-neutral-400 font-normal">0 {currencySymbol} (Edita para añadir)</span>}
             </div>
           </div>
 
@@ -231,13 +233,13 @@ export default function TaskDetails() {
               <div className="flex items-center group">
                 <div className="w-40 flex items-center text-neutral-500 dark:text-neutral-400 text-sm font-medium"><ArrowDownRight className="w-4 h-4 mr-2 text-rose-500 opacity-60" /> Coste Interno</div>
                 <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                  - {task.cost} €
+                  - {task.cost} {currencySymbol}
                 </div>
               </div>
               <div className="flex items-center group pt-2 mt-2 border-t border-neutral-100 dark:border-neutral-800">
                 <div className="w-40 flex items-center text-neutral-500 dark:text-neutral-400 text-sm font-medium"><Target className="w-4 h-4 mr-2 text-emerald-500 opacity-60" /> Beneficio Limpio</div>
                 <div className="text-sm font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-800">
-                  {task.budget - (task.cost || 0)} €
+                  {task.budget - (task.cost || 0)} {currencySymbol}
                 </div>
               </div>
             </>
@@ -260,23 +262,36 @@ export default function TaskDetails() {
 
       <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} taskToEdit={task} />
 
-      {/* FACTURA OCULTA */}
+      {/* FACTURA OCULTA PARA PDF */}
       <div className="overflow-hidden h-0 w-0 absolute pointer-events-none">
         <div id="invoice-template" className="w-[800px] min-h-[1131px] bg-white text-black p-16 font-sans border-0 shadow-none">
+          
           <div className="flex justify-between items-start border-b-2 border-gray-200 pb-8 mb-8">
             <div>
               <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">FACTURA</h1>
               <p className="text-gray-500 font-medium">Nº: {invoiceNumber}</p>
               <p className="text-gray-500 font-medium">Fecha: {new Date().toLocaleDateString('es-ES')}</p>
             </div>
+            
+            {/* ⚡ CABECERA DINÁMICA DEL EMISOR (TUS DATOS FISCALES) */}
             <div className="text-right">
               <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-3xl font-bold ml-auto mb-3">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+                {(user?.preferences?.companyName || user?.name)?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <h3 className="font-bold text-lg text-gray-900">{user?.name}</h3>
-              <p className="text-gray-500">{user?.email}</p>
+              <h3 className="font-bold text-lg text-gray-900 uppercase">
+                {user?.preferences?.companyName || user?.name}
+              </h3>
+              {user?.preferences?.taxId && (
+                <p className="text-gray-500 text-sm font-medium">NIF/CIF: {user?.preferences?.taxId}</p>
+              )}
+              {user?.preferences?.address && (
+                <p className="text-gray-500 text-sm">{user?.preferences?.address}</p>
+              )}
+              <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
             </div>
+            
           </div>
+
           <div className="mb-12">
             <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Facturado a:</p>
             <h3 className="text-xl font-bold text-gray-900">{associatedClient?.companyName || associatedClient?.name}</h3>
@@ -284,6 +299,7 @@ export default function TaskDetails() {
             <p className="text-gray-600 mt-1">{associatedClient?.email}</p>
             <p className="text-gray-600 mt-1">{associatedClient?.phone}</p>
           </div>
+          
           <table className="w-full mb-12">
             <thead className="bg-gray-50">
               <tr>
@@ -299,30 +315,32 @@ export default function TaskDetails() {
                   <p className="text-gray-500 mt-1 text-sm">{task.category}</p>
                 </td>
                 <td className="px-4 py-6 text-center text-gray-700 font-medium">1</td>
-                <td className="px-4 py-6 text-right font-bold text-gray-900 text-lg">{subtotal.toFixed(2)} €</td>
+                <td className="px-4 py-6 text-right font-bold text-gray-900 text-lg">{subtotal.toFixed(2)} {currencySymbol}</td>
               </tr>
             </tbody>
           </table>
+          
           <div className="flex justify-end">
             <div className="w-80 space-y-3">
               <div className="flex justify-between items-center text-gray-600">
                 <span>Subtotal</span>
-                <span className="font-medium">{subtotal.toFixed(2)} €</span>
+                <span className="font-medium">{subtotal.toFixed(2)} {currencySymbol}</span>
               </div>
               <div className="flex justify-between items-center text-gray-600 pb-3 border-b border-gray-200">
-                {/* ⚡ IVA DINÁMICO IMPRESO EN EL PDF */}
                 <span>IVA ({taxRate}%)</span>
-                <span className="font-medium">{iva.toFixed(2)} €</span>
+                <span className="font-medium">{iva.toFixed(2)} {currencySymbol}</span>
               </div>
               <div className="flex justify-between items-center text-xl font-bold text-gray-900 pt-1">
                 <span>Total a pagar</span>
-                <span>{total.toFixed(2)} €</span>
+                <span>{total.toFixed(2)} {currencySymbol}</span>
               </div>
             </div>
           </div>
+          
           <div className="mt-24 pt-8 border-t border-gray-200 text-center">
             <p className="text-gray-400 text-sm font-medium">Gracias por su confianza. Generado a través de AI Business Manager.</p>
           </div>
+          
         </div>
       </div>
     </motion.div>
