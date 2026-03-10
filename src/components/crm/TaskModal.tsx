@@ -10,7 +10,7 @@ interface TaskModalProps {
   onClose: () => void;
   taskToEdit?: Task | null;
   defaultDate?: string | null; 
-  preselectedClientId?: string; // 👈 NUEVO: Parámetro para forzar un cliente
+  preselectedClientId?: string; 
 }
 
 export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, preselectedClientId }: TaskModalProps) {
@@ -20,7 +20,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
   const [formData, setFormData] = useState({
     title: '', description: '', status: 'pending' as TaskStatus,
     priority: 'medium' as TaskPriority, category: 'Llamada' as TaskCategory,
-    budget: 0, client: '', dueDate: '', dueTime: '',
+    budget: '' as number | '', client: '', dueDate: '', dueTime: '',
   });
 
   useEffect(() => {
@@ -28,14 +28,14 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
     if (taskToEdit) {
       setFormData({
         title: taskToEdit.title, description: taskToEdit.description || '',
-        status: taskToEdit.status, priority: taskToEdit.priority, category: taskToEdit.category, budget: taskToEdit.budget || 0,
+        status: taskToEdit.status, priority: taskToEdit.priority, category: taskToEdit.category, 
+        budget: taskToEdit.budget || '',
         client: taskToEdit.client ? (typeof taskToEdit.client === 'object' ? (taskToEdit.client as any)._id : taskToEdit.client) : '',
         dueDate: taskToEdit.dueDate ? new Date(taskToEdit.dueDate).toISOString().split('T')[0] : '', dueTime: taskToEdit.dueTime || '',
       });
     } else {
-      // 👈 NUEVO: Si recibimos un cliente preseleccionado, lo metemos directamente
       setFormData({ 
-        title: '', description: '', status: 'pending', priority: 'medium', category: 'Llamada', budget: 0, 
+        title: '', description: '', status: 'pending', priority: 'medium', category: 'Llamada', budget: '', 
         client: preselectedClientId || '', 
         dueDate: defaultDate || new Date().toISOString().split('T')[0], dueTime: '' 
       });
@@ -45,10 +45,9 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const dataToSend = { ...formData };
+      // Aseguramos que sea número antes de mandar
+      const dataToSend = { ...formData, budget: Number(formData.budget) || 0 };
       
-      // ⚡ SOLUCIÓN BUG 2: Si el cliente es "Ninguno" (vacío), 
-      // no borramos la variable, forzamos que se envíe vacía para que el backend la limpie.
       if (!dataToSend.client || dataToSend.client === '') {
           dataToSend.client = ''; 
       }
@@ -56,15 +55,11 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
       if (taskToEdit) {
         await updateTask(taskToEdit._id, dataToSend);
       } else {
-        // En la creación, si el cliente está vacío sí podemos borrar la variable para evitar errores.
         if (dataToSend.client === '') delete (dataToSend as any).client;
         await addTask(dataToSend);
       }
-      
       onClose();
-    } catch (error) { 
-      console.error(error); 
-    }
+    } catch (error) { console.error(error); }
   };
 
   return (
@@ -87,8 +82,6 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                
-                {/* 👈 NUEVO: Si hay preselectedClientId, OCULTAMOS este bloque */}
                 {!preselectedClientId && (
                   <div className="sm:col-span-5">
                     <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Cliente</label>
@@ -98,8 +91,6 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
                     </select>
                   </div>
                 )}
-
-                {/* 👇 Ajustamos el tamaño (col-span) dinámicamente si ocultamos el cliente */}
                 <div className={preselectedClientId ? "sm:col-span-7" : "sm:col-span-4"}>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors"><Calendar className="w-4 h-4 mr-1" /> Fecha</label>
                   <input type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" />
@@ -134,7 +125,8 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Cobro (€)</label>
-                  <input type="number" min="0" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" />
+                  {/* ⚡ AHORA SE PUEDE BORRAR EL CERO PERFECTAMENTE */}
+                  <input type="number" min="0" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value === '' ? '' : Number(e.target.value) })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="0" />
                 </div>
               </div>
 

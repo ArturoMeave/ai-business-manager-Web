@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Finance } from '../types';
 import { financeService } from '../services/finance.service';
 import type { FinanceFilters, FinanceSummary } from '../services/finance.service';
+import { api } from '../services/api';
 
 interface FinanceState {
   finances: Finance[];
@@ -13,6 +14,7 @@ interface FinanceState {
   fetchFinances: (filters?: FinanceFilters) => Promise<void>;
   fetchSummary: () => Promise<void>;
   addFinance: (data: Partial<Finance>) => Promise<void>;
+  updateFinance: (id: string, data: Partial<Finance>) => Promise<void>; // ⚡ AÑADIDO
   deleteFinance: (id: string) => Promise<void>;
   setFilters: (filters: FinanceFilters) => void;
 }
@@ -47,7 +49,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   addFinance: async (data) => {
-    // ⚡ SOLUCIÓN: ACTUALIZACIÓN OPTIMISTA (Elimina el Lag Visual)
     const tempAmount = Number(data.amount) || 0;
     const tempFinance = { 
       ...data, 
@@ -68,7 +69,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
     try {
       await financeService.createFinance(data);
-      // Actualizamos los datos reales de fondo de manera invisible
       get().fetchFinances(get().filters); 
       get().fetchSummary();
     } catch (error: any) {
@@ -77,8 +77,26 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     }
   },
 
+  // ⚡ NUEVA FUNCIÓN PARA ARCHIVAR/DESARCHIVAR
+  updateFinance: async (id, data) => {
+    const previousFinances = get().finances;
+    set((state) => ({
+      finances: state.finances.map(f => f._id === id ? { ...f, ...data } : f),
+    }));
+    try {
+      if ((financeService as any).updateFinance) {
+          await (financeService as any).updateFinance(id, data);
+      } else {
+          await api.put(`/finance/${id}`, data);
+      }
+      get().fetchSummary();
+    } catch (error: any) {
+      set({ finances: previousFinances, error: error.response?.data?.message || 'Error al actualizar' });
+      throw error;
+    }
+  },
+
   deleteFinance: async (id) => {
-    // ⚡ ACTUALIZACIÓN OPTIMISTA AL BORRAR
     const previousFinances = get().finances;
     const financeToDelete = previousFinances.find(f => f._id === id);
     

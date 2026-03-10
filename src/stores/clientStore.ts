@@ -24,7 +24,6 @@ export const useClientStore = create<ClientState>((set, get) => ({
   totalPages: 1,
   totalRecords: 0,
 
-  // 👈 SOLUCIÓN BUG FANTASMA: Pedimos 1000 clientes por defecto
   fetchClients: async (page = 1, limit = 1000) => {
     try {
       set({ isLoading: true, error: null });
@@ -34,7 +33,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
         clients: response.data, 
         currentPage: response.pagination.paginaActual,
         totalPages: response.pagination.totalPaginas,
-        totalRecords: response.pagination.totalRegistros, // 👈 CORRECCIÓN: Añadida la 's' final
+        totalRecords: response.pagination.totalRegistros,
         isLoading: false 
       });
     } catch (error: any) {
@@ -43,24 +42,33 @@ export const useClientStore = create<ClientState>((set, get) => ({
   },
 
   addClient: async (data) => {
+    // ⚡ ACTUALIZACIÓN OPTIMISTA: Lo dibujamos en pantalla al instante
+    const tempId = `temp-${Date.now()}`;
+    const newClient = { _id: tempId, ...data } as Client;
+
+    set((state) => ({
+      clients: [newClient, ...state.clients],
+      totalRecords: state.totalRecords + 1,
+      isLoading: false
+    }));
+
     try {
-      set({ isLoading: true, error: null });
-      const newClient = await clientService.createClient(data);
-      // ⚡ ACTUALIZACIÓN OPTIMISTA (0 delay)
-      set((state) => ({
-        clients: [newClient, ...state.clients],
-        totalRecords: state.totalRecords + 1,
-        isLoading: false
-      }));
+      await clientService.createClient(data);
+      // Refrescamos en silencio para cambiar el ID temporal por el real de la DB
+      get().fetchClients();
     } catch (error: any) {
-      set({ error: error.response?.data?.message || 'Error al crear cliente', isLoading: false });
+      // Si falla, lo borramos
+      set((state) => ({
+        clients: state.clients.filter(c => c._id !== tempId),
+        totalRecords: state.totalRecords - 1,
+        error: error.response?.data?.message || 'Error al crear cliente'
+      }));
       throw error;
     }
   },
 
   updateClient: async (id, data) => {
     const previousClients = get().clients;
-    // ⚡ ACTUALIZACIÓN OPTIMISTA
     set((state) => ({
       clients: state.clients.map(c => c._id === id ? { ...c, ...data } : c)
     }));
@@ -74,7 +82,6 @@ export const useClientStore = create<ClientState>((set, get) => ({
 
   deleteClient: async (id) => {
     const previousClients = get().clients;
-    // ⚡ ACTUALIZACIÓN OPTIMISTA
     set((state) => ({
       clients: state.clients.filter(c => c._id !== id),
       totalRecords: Math.max(0, state.totalRecords - 1)

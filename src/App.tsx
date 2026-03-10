@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useThemeStore } from './stores/themeStore'; // 👈 El cerebro del tema
+import { useThemeStore } from './stores/themeStore'; // El cerebro del tema
 
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
@@ -15,10 +15,21 @@ import AiChat from './pages/AiChat';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 
+// ⚡ NUEVO: Contenedor para centrar el Login y el Registro de forma elegante
+const AuthWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAFAFA] dark:bg-[#050505] relative overflow-hidden">
+    {/* Resplandor de fondo premium */}
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+    <div className="relative z-10 w-full flex justify-center">
+      {children}
+    </div>
+  </div>
+);
+
 export default function App() {
   const { theme } = useThemeStore();
 
-  // 👈 MAGIA DEL MODO OSCURO: Se inyecta en el HTML raíz de forma perfecta
+  // MAGIA DEL MODO OSCURO
   useEffect(() => {
     const root = window.document.documentElement;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -34,7 +45,6 @@ export default function App() {
 
     applyTheme();
 
-    // Si está en 'system', escucha si el usuario cambia el tema en su ordenador en tiempo real
     const handler = () => { if (theme === 'system') applyTheme(); };
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
@@ -45,8 +55,10 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterForm />} />
+          
+          {/* ⚡ APLICAMOS EL WRAPPER A LAS RUTAS DE AUTENTICACIÓN */}
+          <Route path="/login" element={<AuthWrapper><LoginForm /></AuthWrapper>} />
+          <Route path="/register" element={<AuthWrapper><RegisterForm /></AuthWrapper>} />
           
           <Route element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />

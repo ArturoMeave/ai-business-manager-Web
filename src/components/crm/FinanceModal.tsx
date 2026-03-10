@@ -1,34 +1,120 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Tag } from 'lucide-react';
+import { X, Tag, User } from 'lucide-react';
 import { useFinanceStore } from '../../stores/financeStore';
 import { useAuthStore } from '../../stores/authStore'; 
+import { useClientStore } from '../../stores/clientStore';
 import type { FinanceType, FinanceStatus } from '../../types';
 
-interface FinanceModalProps { isOpen: boolean; onClose: () => void; }
+interface FinanceModalProps { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  defaultType?: FinanceType;
+  defaultDescription?: string;
+  preselectedClientId?: string;
+}
 
+// ⚡ CATEGORÍAS 100% REALES Y COTIDIANAS
 const CATEGORIES_BY_ROLE = {
-  worker: { ingreso: ['Nómina', 'Pagas Extra', 'Inversiones', 'Otros Ingresos'], gasto: ['Alquiler/Hipoteca', 'Supermercado', 'Suscripciones', 'Ocio', 'Transporte', 'Otros Gastos'] },
-  freelancer: { ingreso: ['Factura Cliente', 'Servicios', 'Consultoría', 'Otros Ingresos'], gasto: ['Cuota Autónomo', 'IRPF', 'IVA', 'Software/Herramientas', 'Material/Equipos', 'Gestoría', 'Otros Gastos'] },
-  company: { ingreso: ['Ventas B2B', 'Ventas B2C', 'Subvenciones', 'Rendimientos', 'Otros Ingresos'], gasto: ['Nóminas Empleados', 'Seguros Sociales', 'Impuesto Sociedades', 'Proveedores', 'Oficina/Alquiler', 'Marketing', 'Otros Gastos'] },
-  god_mode: { ingreso: ['Facturación', 'Nómina', 'Subvenciones', 'Inversiones', 'Otros Ingresos'], gasto: ['Impuestos/Cuotas', 'Nóminas/Empleados', 'Proveedores', 'Suscripciones/Software', 'Personal/Ocio', 'Otros Gastos'] }
+  worker: { 
+    ingreso: [
+      'Nómina', 'Bizum de amigos / Deudas', 'Venta en Wallapop / Vinted', 
+      'Paga Extra', 'Regalo familiar', 'Devolución de Hacienda', 
+      'Apuestas / Lotería', 'Otros Ingresos'
+    ], 
+    gasto: [
+      'Alquiler / Hipoteca', 'Supermercado y Alimentación', 'Luz / Agua / Gas', 
+      'Bares, Cervezas y Salidas', 'Restaurantes / Comida a domicilio', 'Móvil e Internet', 
+      'Coche / Gasolina / Taller', 'Transporte público / Uber', 'Ropa y Calzado', 
+      'Suscripciones (Netflix, Spotify, Gym)', 'Peluquería / Belleza', 'Farmacia / Médico', 
+      'Mascotas (Comida, Vet)', 'Viajes y Vacaciones', 'Tabaco / Vicios', 'Otros Gastos'
+    ] 
+  },
+  freelancer: { 
+    ingreso: [
+      'Cobro de Factura', 'Ingreso en Efectivo (Sin Factura)', 'Trabajo extra / Chapuza', 
+      'Subvención (Kit Digital, etc)', 'Devolución de Hacienda', 'Ingreso pasivo (YouTube, Ads)', 
+      'Otros Ingresos'
+    ], 
+    gasto: [
+      'Cuota de Autónomos', 'Liquidación IVA (Trimestral)', 'Liquidación IRPF (Trimestral)', 
+      'El Gestor / Asesoría', 'Compras de Material / Stock', 'Dietas / Comida de trabajo', 
+      'Gasolina / Desplazamientos', 'Teléfono e Internet', 'Suscripciones (Adobe, ChatGPT, etc)', 
+      'Publicidad (Instagram, Google)', 'Equipo Informático (PC, Móvil)', 'Comisiones del Banco / Stripe', 
+      'Otros Gastos'
+    ] 
+  },
+  company: { 
+    ingreso: [
+      'Facturación a Clientes', 'Ventas TPV / Mostrador', 'Préstamo Bancario', 
+      'Subvenciones', 'Aportación de Socios', 'Otros Ingresos'
+    ], 
+    gasto: [
+      'Nóminas de Empleados', 'Seguridad Social (TCs)', 'Impuesto de Sociedades', 
+      'Pago a Proveedores', 'Alquiler de Local / Nave', 'Suministros (Luz, Agua, Internet)', 
+      'Gestoría, Notaría y Abogados', 'Mantenimiento y Limpieza', 'Campaña de Marketing', 
+      'Seguros (Local, Responsabilidad)', 'Gastos Financieros / Préstamos', 'Otros Gastos'
+    ] 
+  },
+  god_mode: { 
+    ingreso: [
+      'Nómina / Honorarios', 'Cobro a Cliente', 'Bizum / Transferencia', 
+      'Subvenciones / Préstamos', 'Ventas varias', 'Otros Ingresos'
+    ], 
+    gasto: [
+      'Supermercado y Vida', 'Alquiler / Hipoteca / Local', 'Impuestos y Cuotas', 
+      'Proveedores y Material', 'Ocio y Restaurantes', 'Suscripciones y Software', 
+      'Transporte / Vehículo', 'Salud y Farmacia', 'Otros Gastos'
+    ] 
+  }
 };
 
-export default function FinanceModal({ isOpen, onClose }: FinanceModalProps) {
+export default function FinanceModal({ isOpen, onClose, defaultType, defaultDescription, preselectedClientId }: FinanceModalProps) {
   const { addFinance, isLoading } = useFinanceStore();
+  const { clients, fetchClients } = useClientStore();
   const { user } = useAuthStore(); 
+  
   const userRole = user?.preferences?.role || 'god_mode';
   const availableCategories = CATEGORIES_BY_ROLE[userRole as keyof typeof CATEGORIES_BY_ROLE] || CATEGORIES_BY_ROLE['god_mode'];
 
-  const [formData, setFormData] = useState({ type: 'ingreso' as FinanceType, amount: '', description: '', category: availableCategories.ingreso[0], status: 'completado' as FinanceStatus, date: new Date().toISOString().split('T')[0] });
+  const [formData, setFormData] = useState({ 
+    type: 'ingreso' as FinanceType, 
+    amount: '' as number | '', 
+    description: '', 
+    category: availableCategories.ingreso[0], 
+    status: 'completado' as FinanceStatus, 
+    date: new Date().toISOString().split('T')[0],
+    client: '' 
+  });
 
-  const handleTypeChange = (newType: FinanceType) => { setFormData({ ...formData, type: newType, category: availableCategories[newType][0] }); };
+  useEffect(() => {
+    if (clients.length === 0) fetchClients();
+    if (isOpen) {
+      const type = defaultType || 'ingreso';
+      setFormData({
+        type: type,
+        amount: '',
+        description: defaultDescription || '',
+        category: availableCategories[type][0],
+        status: 'completado',
+        date: new Date().toISOString().split('T')[0],
+        client: preselectedClientId || '' 
+      });
+    }
+  }, [isOpen, defaultType, defaultDescription, preselectedClientId, clients.length]);
+
+  const handleTypeChange = (newType: FinanceType) => { 
+    setFormData({ ...formData, type: newType, category: availableCategories[newType][0] }); 
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addFinance({ ...formData, amount: Number(formData.amount) });
-      setFormData({ type: 'ingreso', amount: '', description: '', category: availableCategories.ingreso[0], status: 'completado', date: new Date().toISOString().split('T')[0] });
+      const dataToSend = { ...formData, amount: Number(formData.amount) || 0 };
+      if (!dataToSend.client || dataToSend.client === '') {
+        delete (dataToSend as any).client;
+      }
+      await addFinance(dataToSend);
       onClose();
     } catch (error) { console.error(error); }
   };
@@ -51,32 +137,42 @@ export default function FinanceModal({ isOpen, onClose }: FinanceModalProps) {
                 <button type="button" onClick={() => handleTypeChange('gasto')} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${formData.type === 'gasto' ? 'bg-white dark:bg-[#1a1a1a] text-rose-700 dark:text-rose-400 shadow-sm' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Gasto (-€)</button>
               </div>
 
+              {!preselectedClientId && (
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors"><User className="w-3.5 h-3.5 mr-1" /> Cliente Vinculado (Opcional)</label>
+                  <select value={formData.client} onChange={(e) => setFormData({ ...formData, client: e.target.value })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all">
+                    <option value="">Ninguno</option>
+                    {clients.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Cantidad (€) *</label>
-                  <input type="number" step="0.01" min="0.01" required value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-lg font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="0.00" />
+                  <input type="number" step="0.01" min="0" required value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value === '' ? '' : Number(e.target.value) })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-lg font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all" placeholder="0.00" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Fecha *</label>
-                  <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" />
+                  <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all" />
                 </div>
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Concepto *</label>
-                <input type="text" required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. Factura Cliente X, Suscripción..." />
+                <input type="text" required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all" placeholder="Ej. Pago de Cliente..." />
               </div>
 
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors"><Tag className="w-3.5 h-3.5 mr-1" /> Categoría</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all">
+                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all">
                     {availableCategories[formData.type].map((cat: string) => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Estado</label>
-                  <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as FinanceStatus })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all">
+                  <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as FinanceStatus })} className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all">
                     <option value="completado">Pagado / Cobrado</option>
                     <option value="estimado">Pendiente / Estimado</option>
                   </select>

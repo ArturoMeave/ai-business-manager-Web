@@ -36,7 +36,7 @@ export interface Task {
   priority: TaskPriority;
   category: TaskCategory;
   budget: number;
-  cost?: number; // 👈 NUEVO
+  cost?: number; 
   client?: string | Client;
   dueDate?: string;
   dueTime?: string;
@@ -56,6 +56,7 @@ export interface Finance {
     status: FinanceStatus;
     date: string;
     category?: string;
+    client?: string | Client; // ⚡ NUEVO: Ahora las finanzas se vinculan a clientes
     owner: string;
     createdAt: string;
     updatedAt: string;
@@ -72,6 +73,11 @@ export interface UserPreferences {
   taxId?: string;
   address?: string;
   currency?: '€' | '$' | '£';
+  city?: string;
+  zipCode?: string;
+  country?: string;
+  phone: string;
+  iban?: string;
 }
 
 export interface User {
@@ -81,6 +87,7 @@ export interface User {
     preferences: UserPreferences;
     createdAt: string;
     updatedAt: string;
+    isTwoFactorEnabled?: boolean;
 }
 
 export interface AuthResponse {

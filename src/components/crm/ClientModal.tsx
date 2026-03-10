@@ -15,9 +15,9 @@ const CATEGORIES: ClientCategory[] = ['General', 'Prospect', 'Potencial', 'Activ
 export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCardProps) {
     const { addClient, updateClient, isLoading } = useClientStore();
 
-    // 👇 NUEVO: Añadido totalValue al estado inicial
+    // ⚡ Permitimos que el valor sea un string vacío para poder borrar el 0
     const [formData, setFormData] = useState({ 
-        name: '', companyName: '', email: '', phone: '', category: 'General' as ClientCategory, totalValue: 0 
+        name: '', companyName: '', email: '', phone: '', category: 'General' as ClientCategory, totalValue: '' as number | '' 
     });
 
     useEffect(() => {
@@ -26,18 +26,20 @@ export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCar
                 name: clientToEdit.name, companyName: clientToEdit.companyName || '', 
                 email: clientToEdit.email || '', phone: clientToEdit.phone || '', 
                 category: clientToEdit.category, 
-                totalValue: (clientToEdit as any).totalValue || 0 // 👈 Cargamos el valor si existe
+                totalValue: (clientToEdit as any).totalValue || ''
             });
         } else {
-            setFormData({ name: '', companyName: '', email: '', phone: '', category: 'General', totalValue: 0 });
+            setFormData({ name: '', companyName: '', email: '', phone: '', category: 'General', totalValue: '' });
         }
     }, [clientToEdit, isOpen]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            if (clientToEdit) await updateClient(clientToEdit._id, formData);
-            else await addClient(formData);
+            // Aseguramos que se envía un número real a la base de datos
+            const dataToSend = { ...formData, totalValue: Number(formData.totalValue) || 0 };
+            if (clientToEdit) await updateClient(clientToEdit._id, dataToSend);
+            else await addClient(dataToSend);
             onClose();
         } catch (error) { console.error('Error al guardar el cliente', error); }
     };
@@ -53,7 +55,7 @@ export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCar
                             <h2 className="text-xl font-bold text-neutral-900 dark:text-white transition-colors">
                                 {clientToEdit ? 'Editar Cliente' : 'Añadir Nuevo Cliente'}
                             </h2>
-                            <button onClick={onClose} className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors">
+                            <button type="button" onClick={onClose} className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -69,12 +71,12 @@ export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCar
                                     <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Empresa / Proyecto</label>
                                     <input type="text" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. Reforma Chalet" />
                                 </div>
-                                {/* 👇 NUEVO: Input para el Valor Total */}
                                 <div>
                                     <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors">
                                         <DollarSign className="w-4 h-4 mr-1" /> Valor Total (€)
                                     </label>
-                                    <input type="number" min="0" value={formData.totalValue} onChange={(e) => setFormData({ ...formData, totalValue: Number(e.target.value) })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="Ej. 13000" />
+                                    {/* ⚡ AHORA PUEDES BORRAR EL 0 PERFECTAMENTE */}
+                                    <input type="number" min="0" value={formData.totalValue} onChange={(e) => setFormData({ ...formData, totalValue: e.target.value === '' ? '' : Number(e.target.value) })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="0" />
                                 </div>
                             </div>
 
