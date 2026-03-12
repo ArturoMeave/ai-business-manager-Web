@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useThemeStore } from './stores/themeStore'; // El cerebro del tema
+import { useAuthStore } from './stores/authStore'; // ⚡ NUEVO: Importamos la tienda de sesión
 
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
@@ -15,7 +16,7 @@ import AiChat from './pages/AiChat';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 
-// ⚡ NUEVO: Contenedor para centrar el Login y el Registro de forma elegante
+// ⚡ Contenedor para centrar el Login y el Registro de forma elegante
 const AuthWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAFAFA] dark:bg-[#050505] relative overflow-hidden">
     {/* Resplandor de fondo premium */}
@@ -28,6 +29,15 @@ const AuthWrapper = ({ children }: { children: React.ReactNode }) => (
 
 export default function App() {
   const { theme } = useThemeStore();
+  
+  // ⚡ NUEVO: Traemos la función para cargar al usuario
+  const { loadUser } = useAuthStore();
+
+  // ⚡ NUEVO: Este disparador se ejecuta UNA SOLA VEZ nada más encender la web.
+  // Es el que lee el ticket 'auth_token' guardado y le dice a tu app quién eres.
+  useEffect(() => {
+    loadUser();
+  }, []);
 
   // MAGIA DEL MODO OSCURO
   useEffect(() => {
@@ -56,7 +66,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           
-          {/* ⚡ APLICAMOS EL WRAPPER A LAS RUTAS DE AUTENTICACIÓN */}
+          {/* APLICAMOS EL WRAPPER A LAS RUTAS DE AUTENTICACIÓN */}
           <Route path="/login" element={<AuthWrapper><LoginForm /></AuthWrapper>} />
           <Route path="/register" element={<AuthWrapper><RegisterForm /></AuthWrapper>} />
           

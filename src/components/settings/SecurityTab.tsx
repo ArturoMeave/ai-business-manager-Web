@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Key, ShieldCheck, Laptop, Smartphone, AlertTriangle, Trash2, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Key, ShieldCheck, Laptop, Smartphone, AlertTriangle, Trash2, CheckCircle2, ShieldAlert, Monitor, LogOut } from 'lucide-react';
 import { api } from '../../services/api'; 
 import { useAuthStore } from '../../stores/authStore';
 
 export default function SecurityTab() {
-  const { user, loadUser, logout } = useAuthStore();
+  const { user, loadUser, logout, logoutDevice } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -14,10 +14,7 @@ export default function SecurityTab() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [secretText, setSecretText] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  
-  // ⚡ NUEVO ESTADO: Para guardar y enseñar los paracaídas
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
-
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -66,7 +63,6 @@ export default function SecurityTab() {
     }
   };
 
-  // ⚡ ACTUALIZADO: Recibe los códigos del servidor al activar el 2FA
   const verify2FA = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -76,18 +72,28 @@ export default function SecurityTab() {
       await loadUser(); 
       setIsSettingUp2FA(false);
       setSuccessMsg('¡Autenticación de dos pasos activada con éxito!');
-      
-      // Si el servidor nos manda códigos de emergencia, los guardamos en el estado para enseñarlos
-      if (response.data.recoveryCodes) {
-        setRecoveryCodes(response.data.recoveryCodes);
-      }
-      
+      if (response.data.recoveryCodes) setRecoveryCodes(response.data.recoveryCodes);
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (error: any) {
       setErrorMsg(error.response?.data?.message || 'El código es incorrecto.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // ⚡ FUNCIÓN PARA EXPULSAR DISPOSITIVOS
+  // Cuando el usuario haga clic en el botón de salida, esta función pregunta por confirmación y luego usa la habilidad que creamos en el store
+  const handleLogoutDevice = async (sessionId: string) => {
+    if (window.confirm('¿Quieres cerrar sesión en este dispositivo? Aquella pantalla se desconectará al instante.')) {
+      await logoutDevice(sessionId);
+    }
+  };
+
+  // ⚡ FUNCIÓN PARA PONER LA FECHA BONITA
+  // El servidor nos manda la fecha en un formato técnico ("2023-10-05T14:48:00.000Z"), esto lo convierte a texto normal que todos entendemos ("5 oct 2023, 16:48")
+  const formatDate = (dateString: string) => {
+    const d = new Date(dateString);
+    return new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
   };
 
   return (
@@ -138,7 +144,7 @@ export default function SecurityTab() {
         </div>
 
         {/* 🛡️ SECCIÓN 2FA */}
-        <div className="p-6 sm:p-8 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
+        <div className="p-6 sm:p-8 border-b border-neutral-100 dark:border-neutral-800/60 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-start">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4 shrink-0 ${user?.isTwoFactorEnabled ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-neutral-100 dark:bg-neutral-800'}`}>
@@ -167,7 +173,6 @@ export default function SecurityTab() {
             )}
           </div>
 
-          {/* ⚡ LOS CÓDIGOS DE EMERGENCIA (Se muestran una vez al activarlo) */}
           <AnimatePresence>
             {recoveryCodes.length > 0 && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden mt-6">
@@ -193,13 +198,10 @@ export default function SecurityTab() {
             )}
           </AnimatePresence>
 
-          {/* ⚡ EL DESPLEGABLE CON EL QR Y EL CÓDIGO (DISEÑO ARREGLADO) */}
           <AnimatePresence>
             {isSettingUp2FA && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                {/* 🐛 SOLUCIÓN APLICADA AQUÍ: lg:flex-row para darles espacio y min-w-0 */}
                 <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-800/60 flex flex-col lg:flex-row gap-10">
-                  
                   <div className="flex-1 min-w-0 space-y-4">
                     <h4 className="font-bold text-neutral-900 dark:text-white">Paso 1: Escanea el código</h4>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">Abre tu aplicación de autenticación y escanea este código QR.</p>
@@ -208,7 +210,6 @@ export default function SecurityTab() {
                     </div>
                     <div className="mt-2">
                       <p className="text-xs text-neutral-500 dark:text-neutral-400">¿No puedes escanearlo? Introduce este código manualmente:</p>
-                      {/* 🐛 SOLUCIÓN APLICADA AQUÍ: break-all para que no empuje a los lados */}
                       <strong className="tracking-widest mt-1.5 block text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-800 px-3 py-2 rounded-xl text-xs break-all border border-neutral-200 dark:border-neutral-700 font-mono">
                         {secretText}
                       </strong>
@@ -218,25 +219,63 @@ export default function SecurityTab() {
                   <div className="flex-1 min-w-0 space-y-4">
                     <h4 className="font-bold text-neutral-900 dark:text-white">Paso 2: Verifica el código</h4>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">Escribe el código de 6 dígitos que aparece en tu aplicación para confirmar que está bien configurado.</p>
-                    
                     <form onSubmit={verify2FA} className="space-y-4 w-full">
                       {errorMsg && <div className="p-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-sm font-medium rounded-xl border border-rose-100 dark:border-rose-800/50">{errorMsg}</div>}
-                      
                       <input type="text" maxLength={6} required value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))} className="w-full max-w-[200px] px-4 py-3 bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-800 rounded-xl text-2xl tracking-[0.5em] text-center font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="000000" />
-                      
                       <div className="flex gap-3">
                         <button type="button" onClick={() => setIsSettingUp2FA(false)} className="px-5 py-2.5 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold text-sm rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Cancelar</button>
                         <button type="submit" disabled={isLoading || verificationCode.length !== 6} className="px-5 py-2.5 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 whitespace-nowrap">Activar 2FA</button>
                       </div>
                     </form>
                   </div>
-
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-
         </div>
+
+        {/* ⚡ NUEVA SECCIÓN: DISPOSITIVOS CONECTADOS DE VERDAD */}
+        <div className="p-6 sm:p-8 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center mr-4 shrink-0">
+              <Monitor className="w-5 h-5 text-neutral-600 dark:text-neutral-300" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Dispositivos conectados</h3>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Dispositivos en los que has iniciado sesión recientemente.</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {/* Aquí empezamos a repasar la libreta real que nos manda el servidor. Por cada dispositivo, dibujamos una caja */}
+            {(user?.sessions || []).map((device: any) => (
+              <div key={device.id} className="flex items-center justify-between p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#1A1A1A]">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-white dark:bg-[#121212] rounded-lg flex items-center justify-center mr-4 shadow-sm border border-neutral-100 dark:border-neutral-800">
+                    {/* Si es ordenador dibujamos un portátil, si no, dibujamos un móvil */}
+                    {device.type === 'desktop' ? <Laptop className="w-5 h-5 text-neutral-500" /> : <Smartphone className="w-5 h-5 text-neutral-500" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-neutral-900 dark:text-white flex items-center">
+                      {device.os} • {device.browser}
+                      {/* Si el dispositivo de la lista es el mismo que estás usando ahora mismo, le ponemos un cartelito */}
+                      {device.current && <span className="ml-2 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] uppercase tracking-wider font-bold rounded-md">Este dispositivo</span>}
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{device.location} • {formatDate(device.time)}</p>
+                  </div>
+                </div>
+                
+                {/* Si NO es el dispositivo actual, dibujamos el botón para poder cerrarle la sesión a distancia */}
+                {!device.current && (
+                  <button onClick={() => handleLogoutDevice(device.id)} className="p-2 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors" title="Cerrar sesión en este dispositivo">
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       <div className="border border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-900/10 rounded-[2rem] p-6 sm:p-8 transition-colors mt-8">

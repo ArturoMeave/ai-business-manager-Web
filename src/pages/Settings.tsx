@@ -1,31 +1,28 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
-import { Shield, Settings2, Palette, Lock, Blocks, Receipt } from 'lucide-react';
+import { Shield, Settings2, Palette, Lock, Receipt } from 'lucide-react';
 
-// ⚡ IMPORTAMOS TODOS LOS CAJONES
+// ⚡ IMPORTAMOS SOLO LOS CAJONES QUE NECESITAMOS
 import GeneralTab from '../components/settings/GeneralTab';
 import BillingTab from '../components/settings/BillingTab';
 import AppearanceTab from '../components/settings/AppearanceTab';
 import SecurityTab from '../components/settings/SecurityTab';
-import IntegrationsTab from '../components/settings/IntegrationsTab';
 
 export default function Settings() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'general'|'billing'|'appearance'|'security'|'integrations'>('general');
+  const [activeTab, setActiveTab] = useState<'general'|'billing'|'appearance'|'security'>('general');
 
   const menuItems = [
     { id: 'general', label: 'General e IA', icon: Settings2 },
     { id: 'billing', label: 'Facturación', icon: Receipt },
     { id: 'appearance', label: 'Apariencia', icon: Palette },
     { id: 'security', label: 'Seguridad', icon: Lock },
-    { id: 'integrations', label: 'Integraciones', icon: Blocks },
   ];
 
   return (
     <div className="space-y-8 pb-12 max-w-6xl mx-auto transition-colors duration-300">
       
-      {/* CABECERA (Ya no necesita botón de guardar, los cajones lo tienen) */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">Ajustes del Espacio</h1>
@@ -35,7 +32,6 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        {/* COLUMNA IZQUIERDA: Tarjeta + Menú */}
         <div className="md:col-span-4 space-y-6 sticky top-24">
           
           <div className="bg-white dark:bg-[#121212] p-6 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm relative overflow-hidden transition-colors">
@@ -69,7 +65,6 @@ export default function Settings() {
           </nav>
         </div>
 
-        {/* COLUMNA DERECHA: Renderiza los cajones limpios */}
         <div className="md:col-span-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -80,13 +75,10 @@ export default function Settings() {
               transition={{ duration: 0.2 }}
               className="space-y-6"
             >
-              
               {activeTab === 'general' && <GeneralTab />}
               {activeTab === 'billing' && <BillingTab />}
               {activeTab === 'appearance' && <AppearanceTab />}
               {activeTab === 'security' && <SecurityTab />}
-              {activeTab === 'integrations' && <IntegrationsTab />}
-
             </motion.div>
           </AnimatePresence>
         </div>

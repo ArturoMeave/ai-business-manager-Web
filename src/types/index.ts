@@ -8,6 +8,7 @@ export type ClientCategory =
 
 export interface Client {
     _id: string;
+    id?: string; // Añadido para mayor compatibilidad entre Front y Back
     name: string;
     email?: string;
     phone?: string;
@@ -20,16 +21,17 @@ export interface Client {
     employees?: number;
     website?: string;
     owner: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
-export type TaskStatus = 'pending'|'in progress'|'completed';
-export type TaskPriority = 'low'|'medium'|'high';
-export type TaskCategory = 'Llamada'|'Reunion'|'Email'|'Reforma'|'Mantenimiento'|'Otro';
+export type TaskStatus = 'pending' | 'in progress' | 'completed';
+export type TaskPriority = 'low' | 'medium' | 'high';
+export type TaskCategory = 'Llamada' | 'Reunion' | 'Email' | 'Reforma' | 'Mantenimiento' | 'Otro';
 
 export interface Task {
   _id: string;
+  id?: string;
   title: string;
   description?: string;
   status: TaskStatus;
@@ -41,34 +43,38 @@ export interface Task {
   dueDate?: string;
   dueTime?: string;
   owner: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export type FinanceType = 'ingreso'|'gasto';
-export type FinanceStatus = 'estimado'|'completado';
+export type FinanceType = 'ingreso' | 'gasto';
+export type FinanceStatus = 'estimado' | 'completado';
 
 export interface Finance {
     _id: string;
+    id?: string;
     type: FinanceType;
     amount: number;
     description: string;
     status: FinanceStatus;
     date: string;
     category?: string;
-    client?: string | Client; // ⚡ NUEVO: Ahora las finanzas se vinculan a clientes
+    client?: string | Client; 
     owner: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
-export type AiTone = 'motivational'|'analitycal'|'strategic';
+// ⚡ CORREGIDO: Había un typo ('analitycal' a 'analytical')
+export type AiTone = 'motivational' | 'analytical' | 'strategic';
 
 export interface UserPreferences {
-  aiTone: 'motivational' | 'analytical' | 'strategic'; 
-  monthlyGoal: number;
-  themeColor: string;
-  role: 'worker' | 'freelancer' | 'company' | 'god_mode'; 
+  aiTone?: AiTone; 
+  aiCreativity?: number; // ⚡ AÑADIDO: El nivel de creatividad que pusimos en GeneralTab
+  aiContext?: string;    // ⚡ AÑADIDO: Las instrucciones secretas que pusimos en GeneralTab
+  monthlyGoal?: number;
+  themeColor?: string;
+  role?: 'worker' | 'freelancer' | 'company' | 'god_mode'; 
   companyName?: string;
   taxId?: string;
   address?: string;
@@ -76,18 +82,31 @@ export interface UserPreferences {
   city?: string;
   zipCode?: string;
   country?: string;
-  phone: string;
+  phone?: string;
   iban?: string;
 }
 
+// ⚡ AÑADIDO: Aquí le enseñamos a TypeScript qué forma tiene un dispositivo conectado
+export interface Session {
+  id: string;
+  type: string;
+  os: string;
+  browser: string;
+  location: string;
+  time: string;
+  current: boolean;
+}
+
 export interface User {
-    _id: string;
+    id: string; // El Backend suele devolver 'id' en lugar de '_id' en la respuesta
+    _id?: string;
     email: string;
     name: string;
-    preferences: UserPreferences;
-    createdAt: string;
-    updatedAt: string;
+    preferences?: UserPreferences;
+    createdAt?: string;
+    updatedAt?: string;
     isTwoFactorEnabled?: boolean;
+    sessions?: Session[]; // ⚡ AÑADIDO: La libreta de dispositivos opcional
 }
 
 export interface AuthResponse {
@@ -113,9 +132,4 @@ export interface ChartDataPoint {
   ingresos: number;
   gastos: number;
   nuevosClientes: number;
-}
-
-export interface DashboardData {
-  kpis: DashboardKpis;
-  chartData: ChartDataPoint[];
 }
