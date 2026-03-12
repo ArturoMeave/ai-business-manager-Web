@@ -227,7 +227,7 @@ export default function ClientDetails() {
           <div className="w-full h-3 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 1, delay: 0.2 }}
-              className={`h-full rounded-full ${progressPercent >= 100 ? 'bg-emerald-500' : 'bg-primary-600 dark:bg-primary-500'}`}
+              className={`h-full rounded-full ${progressPercent >= 100 ? 'bg-emerald-500' : 'bg-emerald--600 dark:bg-emerald--500'}`}
             />
           </div>
         </div>
@@ -324,7 +324,7 @@ export default function ClientDetails() {
                         <div className="flex-1 p-3 space-y-3 overflow-y-auto min-h-[300px]">
                           <AnimatePresence>
                             {tasks.filter(t => t.status === column.id).map(task => (
-                              <motion.div key={task._id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} draggable onDragStart={(e: any) => handleDragStart(e, task._id)} onClick={() => navigate(`/tasks/${task._id}`)} className={`bg-white dark:bg-[#222] p-3.5 rounded-xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${draggedTaskId === task._id ? 'opacity-50 border-primary-500' : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'}`}>
+                              <motion.div key={task._id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} draggable onDragStart={(e: any) => handleDragStart(e, task._id)} onClick={() => navigate(`/tasks/${task._id}`)} className={`bg-white dark:bg-[#222] p-3.5 rounded-xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${draggedTaskId === task._id ? 'opacity-50 border-emerald--500' : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'}`}>
                                 <h5 className={`font-semibold text-sm mb-2 ${task.status === 'completed' ? 'text-neutral-400 dark:text-neutral-500 line-through' : 'text-neutral-900 dark:text-white'}`}>{task.title}</h5>
                                 <div className="flex justify-between items-center text-xs">
                                   <span className="font-medium text-emerald-600 dark:text-emerald-500">{task.budget > 0 ? `${task.budget} €` : '—'}</span>

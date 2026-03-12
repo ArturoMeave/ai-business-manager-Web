@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+// Volvemos al estado original con localhost
+const API_BASE_URL = "http://localhost:3000/api";
 
 class ApiService {
   private api;
@@ -14,23 +14,27 @@ class ApiService {
       },
     });
 
-    this.api.interceptors.request.use((config) => {
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+    // Interceptor para enviar el token
+    this.api.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
+    // Interceptor para detectar si la sesión caducó
     this.api.interceptors.response.use(
       (response) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           localStorage.removeItem("auth_token");
-          window.location.href = "/login";
         }
         return Promise.reject(error);
-      },
+      }
     );
   }
 

@@ -7,7 +7,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 
 export default function LoginForm() {
   const navigate = useNavigate();
-  const { login, googleLogin, verify2FALogin, isLoading, error } = useAuthStore();
+  const { login, googleLogin, verify2FALogin, forgotPassword, isLoading, error } = useAuthStore();
   
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [step, setStep] = useState<'LOGIN' | 'FORGOT' | '2FA'>('LOGIN');
@@ -62,13 +62,18 @@ export default function LoginForm() {
     }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setResetEmailSent(true);
-    setTimeout(() => {
-      setStep('LOGIN');
-      setResetEmailSent(false);
-    }, 4000);
+    try {
+      await forgotPassword(formData.email);
+      setResetEmailSent(true);
+      setTimeout(() => {
+        setStep('LOGIN');
+        setResetEmailSent(false);
+      }, 4000);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // ⚡ FUNCIÓN PARA CAMBIAR EL FORMATO DE LA CAJA DE TEXTO
@@ -171,6 +176,12 @@ export default function LoginForm() {
               <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-2 font-medium">Te enviaremos un enlace seguro para restablecer tu contraseña.</p>
             </div>
 
+            {error && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-sm text-rose-600 dark:text-rose-400 font-medium text-center">
+                {error}
+              </motion.div>
+            )}
+
             {resetEmailSent ? (
               <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm text-emerald-700 dark:text-emerald-400 font-medium text-center">
                 ¡Enlace enviado! Revisa la bandeja de entrada de tu correo electrónico.
@@ -181,11 +192,11 @@ export default function LoginForm() {
                   <label className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2 block">Email de tu cuenta</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                    <input type="email" required className="w-full pl-10 pr-4 py-3 bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="juan@ejemplo.com" />
+                    <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full pl-10 pr-4 py-3 bg-neutral-50 dark:bg-[#1A1A1A] border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-medium text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="juan@ejemplo.com" />
                   </div>
                 </div>
-                <button type="submit" className="w-full flex items-center justify-center px-4 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold text-sm hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors shadow-md mt-6">
-                  Enviar enlace
+                <button type="submit" disabled={isLoading} className="w-full flex items-center justify-center px-4 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold text-sm hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors shadow-md mt-6 disabled:opacity-50">
+                  {isLoading ? 'Enviando...' : 'Enviar enlace'}
                 </button>
               </form>
             )}

@@ -82,14 +82,21 @@ export const useClientStore = create<ClientState>((set, get) => ({
 
   deleteClient: async (id) => {
     const previousClients = get().clients;
+    const previousTotal = get().totalRecords;
+    
     set((state) => ({
       clients: state.clients.filter(c => c._id !== id),
       totalRecords: Math.max(0, state.totalRecords - 1)
     }));
+    
     try {
       await clientService.deleteClient(id);
     } catch (error: any) {
-      set({ clients: previousClients, error: error.response?.data?.message || 'Error al eliminar' });
+      set({ 
+        clients: previousClients, 
+        totalRecords: previousTotal, 
+        error: error.response?.data?.message || 'Error al eliminar' 
+      });
       throw error;
     }
   }

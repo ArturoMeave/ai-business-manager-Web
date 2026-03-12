@@ -136,7 +136,7 @@ export default function TaskDetails() {
             </select>
           </div>
 
-          <button onClick={handleDownloadInvoice} disabled={isGeneratingPDF} className="flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-colors border bg-primary-900 dark:bg-white text-white dark:text-neutral-900 border-primary-900 hover:bg-primary-800 shadow-md disabled:opacity-50">
+          <button onClick={handleDownloadInvoice} disabled={isGeneratingPDF} className="flex items-center px-4 py-2 text-sm font-bold rounded-lg transition-colors border bg-emerald--900 dark:bg-white text-white dark:text-neutral-900 border-emerald--900 hover:bg-emerald--800 shadow-md disabled:opacity-50">
             {isGeneratingPDF ? <div className="w-4 h-4 mr-2 border-2 border-white/30 dark:border-neutral-900/30 border-t-white dark:border-t-neutral-900 rounded-full animate-spin"></div> : <FileText className="w-4 h-4 mr-2" />}
             Generar Factura
           </button>
@@ -181,7 +181,7 @@ export default function TaskDetails() {
             <div className="w-40 flex items-center text-neutral-500 dark:text-neutral-400 text-sm font-medium"><User className="w-4 h-4 mr-2 opacity-60" /> Cliente</div>
             <div>
               {associatedClient ? (
-                <Link to={`/clients/${associatedClient._id}`} className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline flex items-center">
+                <Link to={`/clients/${associatedClient._id}`} className="text-sm font-medium text-emerald--600 dark:text-emerald--400 hover:text-emerald--700 dark:hover:text-emerald--300 hover:underline flex items-center">
                   {associatedClient.name} <ArrowLeft className="w-3 h-3 ml-1 rotate-135" style={{ transform: 'rotate(135deg)' }} />
                 </Link>
               ) : (

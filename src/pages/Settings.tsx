@@ -58,7 +58,7 @@ export default function Settings() {
                     : 'text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 hover:text-neutral-700 dark:hover:text-neutral-300'
                 }`}
               >
-                <item.icon className={`w-4 h-4 mr-3 ${activeTab === item.id ? 'text-primary-600 dark:text-primary-400' : 'opacity-70'}`} />
+                <item.icon className={`w-4 h-4 mr-3 ${activeTab === item.id ? 'text-emerald--600 dark:text-emerald--400' : 'opacity-70'}`} />
                 {item.label}
               </button>
             ))}

@@ -83,19 +83,19 @@ export default function GeneralTab() {
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
               <User className="w-4 h-4 mr-1.5 text-neutral-400" /> Nombre Completo
             </label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-emerald--500 transition-all" />
           </div>
           <div className="md:col-span-1">
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
               <Mail className="w-4 h-4 mr-1.5 text-neutral-400" /> Correo Electrónico
             </label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-emerald--500 transition-all" />
           </div>
           <div className="md:col-span-1">
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
               <Phone className="w-4 h-4 mr-1.5 text-neutral-400" /> Teléfono (Opcional)
             </label>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+34 600 000 000" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+34 600 000 000" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-emerald--500 transition-all" />
           </div>
         </div>
       </div>
@@ -111,13 +111,13 @@ export default function GeneralTab() {
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
               <Building className="w-4 h-4 mr-1.5 text-neutral-400" /> Nombre de la Empresa / Marca
             </label>
-            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Ej. Tech Solutions SL" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Ej. Tech Solutions SL" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-emerald--500 transition-all" />
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
               <FileText className="w-4 h-4 mr-1.5 text-neutral-400" /> NIF / CIF / ID Fiscal
             </label>
-            <input type="text" value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder="B12345678" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+            <input type="text" value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder="B12345678" className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none dark:text-white focus:ring-2 focus:ring-emerald--500 transition-all" />
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
@@ -125,14 +125,14 @@ export default function GeneralTab() {
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-neutral-400">{currency}</span>
-              <input type="number" value={monthlyGoal} onChange={(e) => setMonthlyGoal(Number(e.target.value))} className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary-500 dark:text-white transition-all" />
+              <input type="number" value={monthlyGoal} onChange={(e) => setMonthlyGoal(Number(e.target.value))} className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald--500 dark:text-white transition-all" />
             </div>
           </div>
           <div className="md:col-span-2">
             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center">
               <CreditCard className="w-4 h-4 mr-1.5 text-neutral-400" /> Moneda Principal
             </label>
-            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary-500 dark:text-white cursor-pointer transition-all">
+            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald--500 dark:text-white cursor-pointer transition-all">
               <option value="€">Euro (€)</option>
               <option value="$">Dólar ($)</option>
               <option value="£">Libra (£)</option>

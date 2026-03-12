@@ -98,6 +98,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   deleteFinance: async (id) => {
     const previousFinances = get().finances;
+    const previousSummary = get().summary;
     const financeToDelete = previousFinances.find(f => f._id === id);
     
     set((state) => ({
@@ -115,7 +116,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       get().fetchFinances(get().filters);
       get().fetchSummary();
     } catch (error: any) {
-      set({ finances: previousFinances, error: error.response?.data?.message || 'Error al eliminar registro' });
+      set({ 
+        finances: previousFinances, 
+        summary: previousSummary,  // ⚡ Restauramos la suma original (rollback)
+        error: error.response?.data?.message || 'Error al eliminar registro' 
+      });
       throw error;
     }
   },

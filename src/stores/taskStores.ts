@@ -103,6 +103,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   deleteTask: async (id) => {
     const previousTasks = get().tasks;
     const previousClientTasks = get().clientTasks;
+    const previousTotal = get().totalRecords;
 
     set((state) => ({
       tasks: state.tasks.filter((task) => task._id !== id),
@@ -113,7 +114,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       await taskService.deleteTask(id);
     } catch (error: any) {
-      set({ tasks: previousTasks, clientTasks: previousClientTasks, error: error.response?.data?.message || 'Error al eliminar la tarea' });
+      set({ 
+        tasks: previousTasks, 
+        clientTasks: previousClientTasks, 
+        totalRecords: previousTotal, 
+        error: error.response?.data?.message || 'Error al eliminar la tarea' 
+      });
       throw error;
     }
   },

@@ -150,7 +150,7 @@ export default function Tasks() {
             <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute top-0 left-0 opacity-0 group-hover/btn:opacity-100 transition-opacity" />
           </button>
           <div>
-            <h3 className="font-bold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{task.title}</h3>
+            <h3 className="font-bold text-neutral-900 dark:text-white group-hover:text-emerald--600 dark:group-hover:text-emerald--400 transition-colors">{task.title}</h3>
             
             <div className="flex flex-wrap items-center gap-2 mt-2 text-xs font-medium">
               <span className={`px-2 py-0.5 rounded-md border ${getPriorityStyle(task.priority)}`}>
@@ -288,7 +288,7 @@ export default function Tasks() {
                       const clientObj = task.client ? clients.find(c => c._id === (typeof task.client === 'object' ? (task.client as any)._id : task.client)) : null;
 
                       return (
-                        <motion.div key={task._id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} draggable onDragStart={(e) => handleDragStart(e, task._id)} onClick={() => navigate(`/tasks/${task._id}`)} className={`bg-white dark:bg-[#1a1a1a] p-4 rounded-2xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${draggedTaskId === task._id ? 'opacity-50 scale-95 border-primary-500' : 'border-neutral-200/60 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600'}`}>
+                        <motion.div key={task._id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} draggable onDragStart={(e) => handleDragStart(e, task._id)} onClick={() => navigate(`/tasks/${task._id}`)} className={`bg-white dark:bg-[#1a1a1a] p-4 rounded-2xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${draggedTaskId === task._id ? 'opacity-50 scale-95 border-emerald--500' : 'border-neutral-200/60 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600'}`}>
                           
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getPriorityStyle(task.priority)}`}>

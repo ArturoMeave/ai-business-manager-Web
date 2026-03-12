@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { api } from '../services/api';
 import type { User } from '../types';
 
-// Aquí definimos todo lo que nuestra memoria sabe hacer
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -10,39 +9,44 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   
+  // Funciones de Acceso
   login: (email: string, password: string) => Promise<any>;
   googleLogin: (token: string) => Promise<any>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   loadUser: () => Promise<void>;
+  
+  // Seguridad y Preferencias
   verify2FALogin: (email: string, token: string) => Promise<void>;
   updatePreferences: (preferences: any) => Promise<void>;
-  // ⚡ NUEVA HABILIDAD: La orden de expulsar un dispositivo
   logoutDevice: (sessionId: string) => Promise<void>;
+  
+  // Recuperación de Contraseña
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  // ⚡ CORREGIDO: Ahora busca 'auth_token'
   token: localStorage.getItem('auth_token'),
   isAuthenticated: !!localStorage.getItem('auth_token'),
   isLoading: false,
   error: null,
 
+  // 🚪 Inicio de Sesión Estándar
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.post('/auth/login', { email, password });
       
-      // Si el servidor nos pide el código de 6 números, paramos aquí
       if (response.data.requires2FA) {
         set({ isLoading: false });
         return response.data;
       }
 
       const { token, user } = response.data;
-      // ⚡ CORREGIDO: Ahora guarda 'auth_token'
       localStorage.setItem('auth_token', token);
+      // Inyectamos el token en la API para futuras peticiones
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       set({ user, token, isAuthenticated: true, isLoading: false });
       return response.data;
@@ -55,6 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  // 🌐 Inicio de Sesión con Google
   googleLogin: async (googleToken: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -66,7 +71,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       const { token, user } = response.data;
-      // ⚡ CORREGIDO: Ahora guarda 'auth_token'
       localStorage.setItem('auth_token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       set({ user, token, isAuthenticated: true, isLoading: false });
@@ -80,30 +84,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  verify2FALogin: async (email: string, token: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post('/auth/2fa/verify-login', { email, token });
-      const { token: authToken, user } = response.data;
-      // ⚡ CORREGIDO: Ahora guarda 'auth_token'
-      localStorage.setItem('auth_token', authToken);
-      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-      set({ user, token: authToken, isAuthenticated: true, isLoading: false });
-    } catch (error: any) {
-      set({ 
-        error: error.response?.data?.message || 'Código incorrecto',
-        isLoading: false 
-      });
-      throw error;
-    }
-  },
-
+  // 📝 Registro de Usuario
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.post('/auth/register', { name, email, password });
       const { token, user } = response.data;
-      // ⚡ CORREGIDO: Ahora guarda 'auth_token'
       localStorage.setItem('auth_token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       set({ user, token, isAuthenticated: true, isLoading: false });
@@ -116,15 +102,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: () => {
-    // ⚡ CORREGIDO: Ahora borra 'auth_token'
-    localStorage.removeItem('auth_token');
-    delete api.defaults.headers.common['Authorization'];
-    set({ user: null, token: null, isAuthenticated: false });
+  // 👋 Cierre de Sesión Completo
+  logout: async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error("Error al cerrar sesión en el servidor, limpiando localmente...");
+    } finally {
+      localStorage.removeItem('auth_token');
+      // Limpiamos el cartero de la API
+      delete api.defaults.headers.common['Authorization'];
+      set({ user: null, token: null, isAuthenticated: false });
+    }
   },
 
+  // 🔄 Cargar Usuario al recargar la página
   loadUser: async () => {
-    // ⚡ CORREGIDO: Ahora busca 'auth_token'
     const token = localStorage.getItem('auth_token');
     if (!token) return;
 
@@ -133,33 +126,75 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await api.get('/auth/me');
       set({ user: response.data, isAuthenticated: true });
     } catch (error) {
-      // ⚡ CORREGIDO: Ahora borra 'auth_token'
       localStorage.removeItem('auth_token');
       delete api.defaults.headers.common['Authorization'];
       set({ user: null, token: null, isAuthenticated: false });
     }
   },
 
-  updatePreferences: async (preferences) => {
+  // 🔐 Verificación de 2FA
+  verify2FALogin: async (email: string, token: string) => {
+    set({ isLoading: true, error: null });
     try {
-      const response = await api.put('/auth/preferences', preferences);
-      set({ user: response.data });
+      const response = await api.post('/auth/2fa/verify-login', { email, token });
+      const { token: authToken, user } = response.data;
+      localStorage.setItem('auth_token', authToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      set({ user, token: authToken, isAuthenticated: true, isLoading: false });
     } catch (error: any) {
-      console.error("Error al actualizar preferencias", error);
+      set({ 
+        error: error.response?.data?.message || 'Código incorrecto',
+        isLoading: false 
+      });
       throw error;
     }
   },
 
-  // ⚡ LA MAGIA DE EXPULSAR DISPOSITIVOS
+  updatePreferences: async (preferences) => {
+    try {
+      const response = await api.put('/auth/preferences', preferences);
+      set({ user: response.data, error: null });
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "No se pudieron guardar las preferencias" });
+      throw error;
+    }
+  },
+
   logoutDevice: async (sessionId: string) => {
     try {
-      // 1. Le decimos al servidor: "Borra esta sesión exacta"
       await api.delete(`/auth/sessions/${sessionId}`);
-      // 2. Volvemos a pedirle los datos de usuario al servidor para que la lista se refresque sola
       const { loadUser } = get();
       if(loadUser) await loadUser(); 
     } catch (error) {
       console.error("Error al cerrar sesión remota", error);
+    }
+  },
+
+  forgotPassword: async (email: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.post('/auth/forgot-password', { email });
+      set({ isLoading: false });
+    } catch (error: any) {
+      set({ 
+        error: error.response?.data?.message || 'Error al enviar el correo',
+        isLoading: false 
+      });
+      throw error;
+    }
+  },
+
+  resetPassword: async (token: string, password: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.put(`/auth/reset-password/${token}`, { password });
+      set({ isLoading: false });
+    } catch (error: any) {
+      set({ 
+        error: error.response?.data?.message || 'Enlace inválido o caducado',
+        isLoading: false 
+      });
+      throw error;
     }
   }
 }));
