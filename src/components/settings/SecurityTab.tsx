@@ -102,7 +102,7 @@ export default function SecurityTab() {
 
       <div className="bg-white dark:bg-[#121212] border border-neutral-200/60 dark:border-neutral-800/60 rounded-[2rem] shadow-sm overflow-hidden transition-colors">
         
-        {/* SECCIÓN CONTRASEÑA */}
+        {/* sección de cambiar contraseña */}
         <div className="p-6 sm:p-8 border-b border-neutral-100 dark:border-neutral-800/60">
            <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center mr-4 shrink-0">
@@ -139,7 +139,7 @@ export default function SecurityTab() {
           </form>
         </div>
 
-        {/* SECCIÓN 2FA */}
+        {/* sección de doble factor (2fa) */}
         <div className="p-6 sm:p-8 border-b border-neutral-100 dark:border-neutral-800/60 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-start">
@@ -230,7 +230,7 @@ export default function SecurityTab() {
           </AnimatePresence>
         </div>
 
-        {/* DISPOSITIVOS CONECTADOS */}
+        {/* lista de dispositivos conectados */}
         <div className="p-6 sm:p-8 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
           <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center mr-4 shrink-0">

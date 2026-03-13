@@ -66,7 +66,7 @@ export default function BillingTab() {
             </div>
           </div>
 
-          {/* BLOQUE DE DIRECCIÓN DETALLADA */}
+          {/* bloque de dirección */}
           <div className="border-t border-neutral-100 dark:border-neutral-800/60 pt-6">
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">Dirección y Contacto</h3>
             
@@ -98,7 +98,7 @@ export default function BillingTab() {
             </div>
           </div>
 
-          {/* BLOQUE BANCARIO */}
+          {/* configuración bancaria */}
           <div className="border-t border-neutral-100 dark:border-neutral-800/60 pt-6">
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">Datos Bancarios</h3>
             <div>

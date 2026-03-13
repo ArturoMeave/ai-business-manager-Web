@@ -91,7 +91,7 @@ export default function LoginForm() {
       
       <AnimatePresence mode="wait">
         
-        {/* PANTALLA 1: LOGIN NORMAL */}
+        {/* pantalla de inicio de sesión */}
         {step === 'LOGIN' && (
           <motion.div key="login" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <div className="text-center mb-8">
@@ -160,7 +160,7 @@ export default function LoginForm() {
           </motion.div>
         )}
 
-        {/* PANTALLA 2: RECUPERAR CONTRASEÑA */}
+        {/* pantalla para recuperar contraseña */}
         {step === 'FORGOT' && (
           <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
             <button onClick={() => setStep('LOGIN')} className="flex items-center text-sm font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white mb-6 transition-colors">
@@ -199,7 +199,7 @@ export default function LoginForm() {
           </motion.div>
         )}
 
-        {/* PANTALLA 3: LA SALA DE ESPERA (2FA + PARACAÍDAS) */}
+        {/* pantalla de verificación 2FA y códigos de recuperación */}
         {step === '2FA' && (
           <motion.div key="2fa" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <button onClick={() => { setStep('LOGIN'); setTwoFactorCode(''); setIsRecoveryMode(false); }} className="flex items-center text-sm font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white mb-6 transition-colors">

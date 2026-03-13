@@ -278,7 +278,7 @@ export default function ClientDetails() {
 
           <div className="flex-1">
             
-            {/* PESTAÑA 1: TAREAS */}
+            {/* pestaña de tareas */}
             {activeTab === 'tasks' && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#121212] p-8 rounded-3xl shadow-sm border border-neutral-200/60 dark:border-neutral-800/60">
                 <div className="flex justify-between items-center mb-6">
@@ -353,7 +353,7 @@ export default function ClientDetails() {
               </motion.div>
             )}
 
-            {/* PESTAÑA 2: EL LIBRO DE REGISTROS */}
+            {/* pestaña del libro de registros */}
             {activeTab === 'finances' && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden transition-colors">
                 
@@ -421,7 +421,7 @@ export default function ClientDetails() {
       <TaskModal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} preselectedClientId={client._id} />
       <FinanceModal isOpen={isFinanceModalOpen} onClose={() => setIsFinanceModalOpen(false)} defaultType={financeConfig.type} defaultDescription={financeConfig.desc} preselectedClientId={client._id} />
 
-      {/* PLANTILLA PDF OCULTA */}
+      {/* plantilla oculta para el pdf */}
       <div className="overflow-hidden h-0 w-0 absolute pointer-events-none">
         <div id="client-report-template" className="w-[800px] min-h-[1131px] bg-white text-black p-16 font-sans border-0 shadow-none">
           <div className="flex justify-between items-start border-b-2 border-neutral-200 pb-8 mb-8">

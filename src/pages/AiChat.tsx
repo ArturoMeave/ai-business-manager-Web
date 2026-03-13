@@ -70,7 +70,7 @@ export default function AiChat() {
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden relative transition-colors duration-300">
       
-      {/* CABECERA MINIMALISTA */}
+      {/* cabecera del chat */}
       <div className="flex items-center justify-between p-5 border-b border-neutral-100 dark:border-neutral-800 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md sticky top-0 z-10 transition-colors">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-neutral-900 dark:bg-neutral-100 flex items-center justify-center shadow-sm transition-colors">
@@ -91,7 +91,7 @@ export default function AiChat() {
         </div>
       </div>
 
-      {/* ÁREA DE MENSAJES */}
+      {/* área de mensajes */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scroll-smooth bg-neutral-50/30 dark:bg-[#0a0a0a]/50 transition-colors">
         {messages.map((msg) => (
           <motion.div 
@@ -145,7 +145,7 @@ export default function AiChat() {
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* INPUT FLOTANTE */}
+      {/* input flotante */}
       <div className="p-4 sm:p-6 bg-white dark:bg-[#121212] border-t border-neutral-100 dark:border-neutral-800 transition-colors">
         <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto flex items-end shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-[#1a1a1a] focus-within:bg-white dark:focus-within:bg-[#222] focus-within:border-neutral-400 dark:focus-within:border-neutral-500 transition-all">
           <textarea
