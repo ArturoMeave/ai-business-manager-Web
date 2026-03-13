@@ -33,5 +33,17 @@ Una aplicación web para la gestión integral de negocios, centrada en la admini
 - `src/types`: Definiciones de tipos de TypeScript y modelos de datos.
 
 ## Capturas de pantalla
+<img width="1888" height="940" alt="image" src="https://github.com/user-attachments/assets/df673676-08f6-490f-a4d8-66257f9c303c" />
 
-*(Añadir aquí 2 o 3 imágenes de la aplicación funcionando, por ejemplo, el dashboard y la vista de tareas. Puedes arrastrar las imágenes directamente al editor en GitHub para generar el link).*
+<img width="1637" height="940" alt="image" src="https://github.com/user-attachments/assets/9d2fef95-8511-4832-a97e-1e8f456ac35e" />
+
+<img width="1637" height="939" alt="image" src="https://github.com/user-attachments/assets/e7ff1841-f48d-48a9-87ee-50eeefb26fb1" />
+
+<img width="1635" height="941" alt="image" src="https://github.com/user-attachments/assets/1d142ea1-b640-424b-bce6-0ad98f810393" />
+
+
+<img width="1638" height="943" alt="image" src="https://github.com/user-attachments/assets/0448cbb4-eddb-4db6-9f64-eee53d4170b8" />
+
+<img width="1635" height="942" alt="image" src="https://github.com/user-attachments/assets/cb418617-d51f-4ff9-848e-31342534c94d" />
+
+<img width="1638" height="940" alt="image" src="https://github.com/user-attachments/assets/222e7e96-633d-460f-a28f-1c69ee02674c" />
