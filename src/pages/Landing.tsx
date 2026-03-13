@@ -22,7 +22,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#000000] selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-black overflow-hidden font-sans transition-colors duration-300 text-neutral-900 dark:text-white">
       
-      {/* NAVBAR */}
+      {/* navbar */}
       <nav className="fixed top-0 w-full bg-white/80 dark:bg-[#000000]/80 backdrop-blur-md border-b border-neutral-200/60 dark:border-neutral-800/60 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-10">
@@ -51,7 +51,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* HERO SECTION */}
+      {/* sección hero */}
       <section className="pt-48 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-4xl z-10 flex flex-col items-center">
           
@@ -79,7 +79,7 @@ export default function Landing() {
           </motion.div>
         </motion.div>
 
-        {/* HERO IMAGE */}
+        {/* imagen principal */}
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
           animate={{ opacity: 1, y: 0 }} 
@@ -95,7 +95,7 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* SOCIAL PROOF */}
+      {/* prueba social */}
       <section className="py-12 border-y border-neutral-200 dark:border-neutral-900 bg-neutral-50 dark:bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 opacity-60 grayscale dark:invert">
           <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">Confiado por innovadores</p>
@@ -108,7 +108,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* LA SUITE */}
+      {/* la suite de herramientas */}
       <section id="suite" className="py-32 px-6 max-w-7xl mx-auto">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} className="max-w-3xl mb-20">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Una suite conectada. <br/>Múltiples soluciones.</h2>
@@ -189,7 +189,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* PRECIOS */}
+      {/* sección de precios */}
       <section id="precios" className="py-32 px-6 border-y border-neutral-200 dark:border-neutral-900 bg-neutral-50 dark:bg-[#050505]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start gap-16">
           <div className="flex-1 md:sticky top-32">
@@ -230,7 +230,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
+      {/* cta final */}
       <section className="py-40 px-6 text-center">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="max-w-3xl mx-auto">
           <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center mx-auto mb-8">
@@ -244,7 +244,7 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* FOOTER */}
+      {/* footer */}
       <footer className="bg-white dark:bg-[#000000] py-12 border-t border-neutral-200 dark:border-neutral-900">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">

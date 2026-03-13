@@ -66,7 +66,7 @@ export default function Clients() {
   return (
     <div className="space-y-8 pb-10 max-w-6xl mx-auto transition-colors duration-300">
       
-      {/* CABECERA Y FILTROS */}
+      {/* cabecera y filtros */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
         <div>
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">Directorio de Clientes</h1>
