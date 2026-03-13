@@ -1,73 +1,37 @@
-# React + TypeScript + Vite
+# Business Manager Web Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Una aplicación web para la gestión integral de negocios, centrada en la administración de clientes, tareas y productividad. Está construida usando React, TypeScript y Vite.
 
-Currently, two official plugins are available:
+## Tecnologías Principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend:** React 19, TypeScript
+- **Estilos:** Tailwind CSS, Framer Motion para animaciones
+- **Estado:** Zustand
+- **Drag & Drop:** dnd-kit (para interfaces estilo Kanban)
+- **Gráficos:** Recharts
+- **PDF/Reportes:** jspdf, html2canvas
 
-## React Compiler
+## Cómo levantar el proyecto localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Clona el repositorio e instala las dependencias:
+   ```bash
+   npm install
+   ```
 
-## Expanding the ESLint configuration
+2. Configura las variables de entorno. Crea un archivo `.env` en la raíz con las credenciales necesarias (por ejemplo, la URL del backend). Puedes usar de referencia el código para ver qué variables se necesitan.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+3. Levanta el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Estructura del proyecto
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- `src/components`: Componentes reutilizables de UI.
+- `src/pages`: Las vistas principales de la aplicación.
+- `src/store`: Estado global manejado con Zustand.
+- `src/types`: Definiciones de tipos de TypeScript y modelos de datos.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Capturas de pantalla
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+*(Añadir aquí 2 o 3 imágenes de la aplicación funcionando, por ejemplo, el dashboard y la vista de tareas. Puedes arrastrar las imágenes directamente al editor en GitHub para generar el link).*
