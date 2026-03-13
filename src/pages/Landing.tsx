@@ -3,13 +3,11 @@ import type { Variants } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bot, PieChart, Users, CheckSquare, Sparkles, ChevronRight, LayoutGrid, ArrowUpRight, Zap, Globe, Shield, Building } from 'lucide-react';
 
-// Imágenes conectadas desde tu carpeta assets
 import heroImg from '../assets/hero-dashboard.png';
 import financeImg from '../assets/finance-bento.png';
 import aiChatImg from '../assets/ai-chat-bento.png';
 import clientsImg from '../assets/clients-bento.png';
 
-// Animaciones de alta precisión (Crisp transitions)
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 1, 0.5, 1] } }
@@ -24,7 +22,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#000000] selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-black overflow-hidden font-sans transition-colors duration-300 text-neutral-900 dark:text-white">
       
-      {/* 🚀 NAVBAR ESTILO NOTION (Ultra limpia) */}
+      {/* NAVBAR */}
       <nav className="fixed top-0 w-full bg-white/80 dark:bg-[#000000]/80 backdrop-blur-md border-b border-neutral-200/60 dark:border-neutral-800/60 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-10">
@@ -53,7 +51,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* 🌟 HERO SECTION (Enfoque Zoho: El Sistema Operativo) */}
+      {/* HERO SECTION */}
       <section className="pt-48 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-4xl z-10 flex flex-col items-center">
           
@@ -81,7 +79,7 @@ export default function Landing() {
           </motion.div>
         </motion.div>
 
-        {/* 🖼️ HERO IMAGE (Elegante y estructurada) */}
+        {/* HERO IMAGE */}
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
           animate={{ opacity: 1, y: 0 }} 
@@ -97,7 +95,7 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* 🏢 SOCIAL PROOF (Serio, corporativo) */}
+      {/* SOCIAL PROOF */}
       <section className="py-12 border-y border-neutral-200 dark:border-neutral-900 bg-neutral-50 dark:bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 opacity-60 grayscale dark:invert">
           <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">Confiado por innovadores</p>
@@ -110,17 +108,17 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 🧩 LA SUITE (Estilo Zoho / Notion Grid) */}
+      {/* LA SUITE */}
       <section id="suite" className="py-32 px-6 max-w-7xl mx-auto">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} className="max-w-3xl mb-20">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Una suite conectada. <br/>Múltiples soluciones.</h2>
           <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light">Elimina las barreras entre tus departamentos. Cuando tus clientes, tareas y finanzas comparten la misma base de datos, la magia ocurre.</p>
         </motion.div>
 
-        {/* Grid Arquitectónico Asimétrico */}
+        {/* Grid Arquitectónico */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           
-          {/* Módulo CRM (Ancho) */}
+          {/* Módulo CRM */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="md:col-span-8 bg-neutral-50 dark:bg-[#0A0A0A] rounded-[2rem] border border-neutral-200 dark:border-neutral-800 p-10 flex flex-col md:flex-row gap-8 group hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
@@ -140,7 +138,7 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          {/* Módulo IA (Estrecho) */}
+          {/* Módulo IA */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
             className="md:col-span-4 bg-neutral-50 dark:bg-[#0A0A0A] rounded-[2rem] border border-neutral-200 dark:border-neutral-800 p-10 flex flex-col group hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors relative overflow-hidden"
@@ -155,7 +153,7 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          {/* Módulo Finanzas (Estrecho) */}
+          {/* Módulo Finanzas */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
             className="md:col-span-4 bg-neutral-50 dark:bg-[#0A0A0A] rounded-[2rem] border border-neutral-200 dark:border-neutral-800 p-10 flex flex-col group hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
@@ -170,7 +168,7 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          {/* Módulo Proyectos (Ancho oscuro) */}
+          {/* Módulo Proyectos */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
             className="md:col-span-8 bg-neutral-900 dark:bg-[#111] text-white rounded-[2rem] border border-neutral-800 p-10 flex flex-col justify-between group"
@@ -191,7 +189,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 💰 PRECIOS (Simple, transparente) */}
+      {/* PRECIOS */}
       <section id="precios" className="py-32 px-6 border-y border-neutral-200 dark:border-neutral-900 bg-neutral-50 dark:bg-[#050505]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start gap-16">
           <div className="flex-1 md:sticky top-32">
@@ -232,7 +230,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA FINAL (Minimalista) */}
+      {/* CTA FINAL */}
       <section className="py-40 px-6 text-center">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="max-w-3xl mx-auto">
           <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center mx-auto mb-8">

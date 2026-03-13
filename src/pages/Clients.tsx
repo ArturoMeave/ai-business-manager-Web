@@ -3,20 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useClientStore } from '../stores/clientStore';
-import { Plus, Search, Building2, Mail, Phone, Users, Edit2, Trash2, ArrowRight, Filter } from 'lucide-react';
+import { Plus, Search, Building2, Mail, Phone, Edit2, Trash2, ArrowRight, Filter } from 'lucide-react';
 import Alert from '../components/common/Alert';
 import ClientModal from '../components/crm/ClientModal';
 import type { Client } from '../types';
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
-};
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -36,7 +27,6 @@ export default function Clients() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
   
-  // ⚡ ESTADOS PARA LOS FILTROS
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedType, setSelectedType] = useState<string>('All');
@@ -54,7 +44,6 @@ export default function Clients() {
     if (window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) await deleteClient(id);
   };
 
-  // ⚡ LÓGICA DEL FILTRADO TRIPLE (Búsqueda + Categoría + Tipo)
   const filteredClients = clients.filter(c => {
     // 1. Filtro de Búsqueda (Texto)
     const matchesSearch = 

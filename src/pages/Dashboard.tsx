@@ -87,7 +87,7 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12 transition-colors duration-300">
       
-      {/* 🚀 CABECERA */}
+      {/* CABECERA */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
           <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">
@@ -99,7 +99,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 📊 FILA 1: KPIs */}
+      {/* FILA 1: KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div onClick={() => navigate('/finance')} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#121212] p-5 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm flex flex-col justify-between cursor-pointer hover:bg-neutral-50 dark:hover:bg-[#1A1A1A] transition-colors group">
           <div className="flex justify-between items-start mb-2">
@@ -134,7 +134,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* ⚡ FILA 2: GRÁFICA MULTIUSO Y ACCIONES */}
+      {/* FILA 2: GRÁFICA MULTIUSO Y ACCIONES */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* GRÁFICA */}
@@ -225,7 +225,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* ⚡ BOTONES DE ACCIÓN RÁPIDA (Arreglado el Modo Claro) */}
+        {/* BOTONES DE ACCIÓN RÁPIDA */}
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-[#121212] border border-neutral-200/60 dark:border-neutral-800/60 rounded-[2rem] p-6 shadow-sm flex flex-col h-[350px] transition-colors">
           <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-6 flex items-center">
             <Zap className="w-4 h-4 mr-2 text-yellow-500" /> Acciones Rápidas
@@ -247,7 +247,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* 📋 FILA 3: AGENDA INTELIGENTE */}
+      {/* FILA 3: AGENDA INTELIGENTE */}
       <div className="grid grid-cols-1 gap-6 pt-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 p-6 sm:p-8 shadow-sm transition-colors">
           <div className="flex justify-between items-center mb-6">

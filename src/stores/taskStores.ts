@@ -29,7 +29,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   clientTasks: [], 
   isLoading: false,
   error: null,
-  // ⚡ AQUÍ ESTÁ LA MAGIA: Ahora pedimos paquetes de 12
   filters: { page: 1, limit: 12 }, 
   currentPage: 1,
   totalPages: 1,

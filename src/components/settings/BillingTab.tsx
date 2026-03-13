@@ -13,7 +13,6 @@ export default function BillingTab() {
     companyName: user?.preferences?.companyName || '',
     taxId: user?.preferences?.taxId || '',
     address: user?.preferences?.address || '',
-    // ⚡ NUEVOS ESTADOS INICIALES
     city: user?.preferences?.city || '',
     zipCode: user?.preferences?.zipCode || '',
     country: user?.preferences?.country || '',
@@ -67,7 +66,7 @@ export default function BillingTab() {
             </div>
           </div>
 
-          {/* ⚡ BLOQUE DE DIRECCIÓN DETALLADA */}
+          {/* BLOQUE DE DIRECCIÓN DETALLADA */}
           <div className="border-t border-neutral-100 dark:border-neutral-800/60 pt-6">
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">Dirección y Contacto</h3>
             
@@ -99,7 +98,7 @@ export default function BillingTab() {
             </div>
           </div>
 
-          {/* ⚡ BLOQUE BANCARIO */}
+          {/* BLOQUE BANCARIO */}
           <div className="border-t border-neutral-100 dark:border-neutral-800/60 pt-6">
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">Datos Bancarios</h3>
             <div>

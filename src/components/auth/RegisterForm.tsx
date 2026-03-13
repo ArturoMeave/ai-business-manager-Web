@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-import { useGoogleLogin } from '@react-oauth/google'; // ⚡ USAMOS EL HOOK PARA EL BOTÓN PERSONALIZADO
+import { useGoogleLogin } from '@react-oauth/google';
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -11,7 +11,6 @@ export default function RegisterForm() {
   
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
 
-  // ⚡ LA FUNCIÓN MÁGICA QUE ABRE EL POPUP DE GOOGLE
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -56,7 +55,6 @@ export default function RegisterForm() {
             </motion.div>
           )}
 
-          {/* ⚡ TU BOTÓN PERSONALIZADO (Idéntico al del Login) ⚡ */}
           <button 
             type="button" 
             onClick={() => handleGoogleLogin()} 

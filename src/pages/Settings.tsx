@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
 import { Shield, Settings2, Palette, Lock, Receipt } from 'lucide-react';
 
-// ⚡ IMPORTAMOS SOLO LOS CAJONES QUE NECESITAMOS
 import GeneralTab from '../components/settings/GeneralTab';
 import BillingTab from '../components/settings/BillingTab';
 import AppearanceTab from '../components/settings/AppearanceTab';

@@ -14,7 +14,7 @@ interface FinanceState {
   fetchFinances: (filters?: FinanceFilters) => Promise<void>;
   fetchSummary: () => Promise<void>;
   addFinance: (data: Partial<Finance>) => Promise<void>;
-  updateFinance: (id: string, data: Partial<Finance>) => Promise<void>; // ⚡ AÑADIDO
+  updateFinance: (id: string, data: Partial<Finance>) => Promise<void>;
   deleteFinance: (id: string) => Promise<void>;
   setFilters: (filters: FinanceFilters) => void;
 }
@@ -77,7 +77,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     }
   },
 
-  // ⚡ NUEVA FUNCIÓN PARA ARCHIVAR/DESARCHIVAR
   updateFinance: async (id, data) => {
     const previousFinances = get().finances;
     set((state) => ({
@@ -118,7 +117,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     } catch (error: any) {
       set({ 
         finances: previousFinances, 
-        summary: previousSummary,  // ⚡ Restauramos la suma original (rollback)
+        summary: previousSummary,
         error: error.response?.data?.message || 'Error al eliminar registro' 
       });
       throw error;

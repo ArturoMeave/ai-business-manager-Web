@@ -81,16 +81,12 @@ export default function SecurityTab() {
     }
   };
 
-  // ⚡ FUNCIÓN PARA EXPULSAR DISPOSITIVOS
-  // Cuando el usuario haga clic en el botón de salida, esta función pregunta por confirmación y luego usa la habilidad que creamos en el store
   const handleLogoutDevice = async (sessionId: string) => {
     if (window.confirm('¿Quieres cerrar sesión en este dispositivo? Aquella pantalla se desconectará al instante.')) {
       await logoutDevice(sessionId);
     }
   };
 
-  // ⚡ FUNCIÓN PARA PONER LA FECHA BONITA
-  // El servidor nos manda la fecha en un formato técnico ("2023-10-05T14:48:00.000Z"), esto lo convierte a texto normal que todos entendemos ("5 oct 2023, 16:48")
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
     return new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
@@ -106,7 +102,7 @@ export default function SecurityTab() {
 
       <div className="bg-white dark:bg-[#121212] border border-neutral-200/60 dark:border-neutral-800/60 rounded-[2rem] shadow-sm overflow-hidden transition-colors">
         
-        {/* 🔐 SECCIÓN CONTRASEÑA */}
+        {/* SECCIÓN CONTRASEÑA */}
         <div className="p-6 sm:p-8 border-b border-neutral-100 dark:border-neutral-800/60">
            <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center mr-4 shrink-0">
@@ -143,7 +139,7 @@ export default function SecurityTab() {
           </form>
         </div>
 
-        {/* 🛡️ SECCIÓN 2FA */}
+        {/* SECCIÓN 2FA */}
         <div className="p-6 sm:p-8 border-b border-neutral-100 dark:border-neutral-800/60 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-start">
@@ -234,7 +230,7 @@ export default function SecurityTab() {
           </AnimatePresence>
         </div>
 
-        {/* ⚡ NUEVA SECCIÓN: DISPOSITIVOS CONECTADOS DE VERDAD */}
+        {/* DISPOSITIVOS CONECTADOS */}
         <div className="p-6 sm:p-8 hover:bg-neutral-50/50 dark:hover:bg-[#1a1a1a]/50 transition-colors">
           <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center mr-4 shrink-0">
@@ -247,25 +243,21 @@ export default function SecurityTab() {
           </div>
 
           <div className="space-y-3">
-            {/* Aquí empezamos a repasar la libreta real que nos manda el servidor. Por cada dispositivo, dibujamos una caja */}
             {(user?.sessions || []).map((device: any) => (
               <div key={device.id} className="flex items-center justify-between p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#1A1A1A]">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-white dark:bg-[#121212] rounded-lg flex items-center justify-center mr-4 shadow-sm border border-neutral-100 dark:border-neutral-800">
-                    {/* Si es ordenador dibujamos un portátil, si no, dibujamos un móvil */}
                     {device.type === 'desktop' ? <Laptop className="w-5 h-5 text-neutral-500" /> : <Smartphone className="w-5 h-5 text-neutral-500" />}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-neutral-900 dark:text-white flex items-center">
                       {device.os} • {device.browser}
-                      {/* Si el dispositivo de la lista es el mismo que estás usando ahora mismo, le ponemos un cartelito */}
                       {device.current && <span className="ml-2 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] uppercase tracking-wider font-bold rounded-md">Este dispositivo</span>}
                     </p>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{device.location} • {formatDate(device.time)}</p>
                   </div>
                 </div>
                 
-                {/* Si NO es el dispositivo actual, dibujamos el botón para poder cerrarle la sesión a distancia */}
                 {!device.current && (
                   <button onClick={() => handleLogoutDevice(device.id)} className="p-2 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors" title="Cerrar sesión en este dispositivo">
                     <LogOut className="w-4 h-4" />

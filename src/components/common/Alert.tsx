@@ -1,6 +1,5 @@
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 
-// ⚡ 1. AÑADIMOS className A LA LISTA VIP (con "?" para que sea opcional)
 interface AlertProps {
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
@@ -31,13 +30,11 @@ const alertStyles = {
   },
 };
 
-// ⚡ 2. RECIBIMOS LA CLASE (Si no llega nada, usamos un texto vacío '')
 export default function Alert({ type, message, onClose, className = '' }: AlertProps) {
   const style = alertStyles[type];
   const Icon = style.icon;
 
   return (
-    // ⚡ 3. INYECTAMOS LA CLASE EN EL HTML FINAL
     <div className={`border rounded-lg p-4 flex items-start space-x-3 ${style.container} ${className}`}>
       <Icon size={20} className={style.iconColor} />
       <p className="flex-1 text-sm">{message}</p>

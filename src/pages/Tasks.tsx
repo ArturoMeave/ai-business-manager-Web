@@ -138,7 +138,6 @@ export default function Tasks() {
     }
   };
 
-  // ⚡ SOLUCIÓN: Convertido a función de renderizado normal en lugar de Componente React
   const renderTaskRow = (task: Task) => {
     const clientObj = task.client ? clients.find(c => c._id === (typeof task.client === 'object' ? (task.client as any)._id : task.client)) : null;
 
@@ -236,7 +235,6 @@ export default function Tasks() {
                       <AlertTriangle className="w-4 h-4 mr-2" /> Tareas Atrasadas
                     </h2>
                     <AnimatePresence>
-                      {/* ⚡ AQUI USAMOS LA FUNCION EN LUGAR DEL COMPONENTE */}
                       {overdueTasks.map(task => renderTaskRow(task))}
                     </AnimatePresence>
                   </div>

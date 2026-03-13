@@ -42,7 +42,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
   },
 
   addClient: async (data) => {
-    // ⚡ ACTUALIZACIÓN OPTIMISTA: Lo dibujamos en pantalla al instante
+    // Actualización optimista
     const tempId = `temp-${Date.now()}`;
     const newClient = { _id: tempId, ...data } as Client;
 

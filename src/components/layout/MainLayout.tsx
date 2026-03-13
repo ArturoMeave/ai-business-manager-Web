@@ -9,7 +9,7 @@ import { useTaskStore } from '../../stores/taskStores';
 export default function MainLayout() {
     const location = useLocation();
 
-    // ⚡ EL CEREBRO: Decide qué título mostrar según la URL
+    // Decide qué título mostrar según la URL
     const getPageTitle = (pathname: string) => {
         if (pathname.startsWith('/clients')) return 'Cartera de Clientes';
         if (pathname.startsWith('/tasks')) return 'Gestión de Tareas';
@@ -22,7 +22,7 @@ export default function MainLayout() {
     const { isAuthenticated } = useAuthStore();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     
-    // ⚡ SISTEMA DE NOTIFICACIONES INTELIGENTE
+    // Notificaciones
     const { tasks, fetchTasks } = useTaskStore();
     const [alerts, setAlerts] = useState<{id: string, title: string, message: string, type: 'warning'|'info'}[]>([]);
     const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
@@ -112,14 +112,12 @@ export default function MainLayout() {
               <Menu className="w-6 h-6" />
             </button>
             
-            {/* 👇 ESTO ES LO QUE HEMOS CAMBIADO (Móvil) 👇 */}
             <h2 className="text-lg font-semibold text-gray-800 dark:text-neutral-100 tracking-tight md:hidden">
               {getPageTitle(location.pathname)}
             </h2>
             
             <div className="w-6 md:hidden"></div>
             
-            {/* 👇 ESTO ES LO QUE HEMOS CAMBIADO (Escritorio) 👇 */}
             <h2 className="hidden md:block text-xl font-semibold text-gray-800 dark:text-neutral-100 tracking-tight">
               {getPageTitle(location.pathname)}
             </h2>
@@ -133,7 +131,7 @@ export default function MainLayout() {
 
         </div>
 
-        {/* ⚡ LAS NOTIFICACIONES FLOTANTES */}
+        {/* NOTIFICACIONES FLOTANTES */}
         <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
           <AnimatePresence>
             {alerts.map(alert => (

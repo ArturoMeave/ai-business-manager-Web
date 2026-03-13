@@ -21,7 +21,7 @@ import AiChat from './pages/AiChat';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 
-// 🎨 AuthWrapper (Diseño premium para auth)
+// AuthWrapper
 const AuthWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAFAFA] dark:bg-[#050505] relative overflow-hidden">
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none"></div>
@@ -31,7 +31,7 @@ const AuthWrapper = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-// 🛡️ ProtectedRoute (Solo para usuarios con sesión)
+// ProtectedRoute
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
   
@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>; 
 };
 
-// 🛡️ PublicRoute (Solo para usuarios SIN sesión activa)
+// PublicRoute
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
@@ -51,13 +51,12 @@ export default function App() {
   const { theme } = useThemeStore();
   const { loadUser, isAuthenticated } = useAuthStore();
 
-  // ⚡ SE CARGA UNA SOLA VEZ AL INICIO
   useEffect(() => {
     loadUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
-  // 🌗 Lógica de Temas
+  // Lógica de Temas
   useEffect(() => {
     const root = window.document.documentElement;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

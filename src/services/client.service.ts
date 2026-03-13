@@ -2,7 +2,6 @@ import {api} from './api';
 import type { Client } from '../types';
 
 export const clientService = {
-  // 👈 CORRECCIÓN: Añadido limit y renombrado a getClients
   getClients: async (params?: { page?: number; limit?: number }) => {
     const response = await api.get('/clients', { params });
     return response.data;

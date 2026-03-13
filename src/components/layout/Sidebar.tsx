@@ -82,7 +82,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       <div className="p-3 mb-4 space-y-1">
         
-        {/* 👇 BOTÓN MODO OSCURO SIMPLIFICADO */}
+        {/* BOTÓN MODO OSCURO */}
         <button
           onClick={toggleTheme}
           className="flex items-center w-full px-3 py-2.5 text-base font-medium text-neutral-600 dark:text-neutral-400 rounded-lg hover:bg-neutral-200/40 dark:hover:bg-neutral-800/40 hover:text-neutral-900 dark:hover:text-white transition-colors duration-150 group"

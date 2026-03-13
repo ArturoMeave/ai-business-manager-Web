@@ -15,7 +15,6 @@ const CATEGORIES: ClientCategory[] = ['General', 'Prospect', 'Potencial', 'Activ
 export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCardProps) {
     const { addClient, updateClient, isLoading } = useClientStore();
 
-    // ⚡ Permitimos que el valor sea un string vacío para poder borrar el 0
     const [formData, setFormData] = useState({ 
         name: '', companyName: '', email: '', phone: '', category: 'General' as ClientCategory, totalValue: '' as number | '' 
     });
@@ -75,7 +74,6 @@ export default function ClientModal({ isOpen, onClose, clientToEdit }: ClientCar
                                     <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center transition-colors">
                                         <DollarSign className="w-4 h-4 mr-1" /> Valor Total (€)
                                     </label>
-                                    {/* ⚡ AHORA PUEDES BORRAR EL 0 PERFECTAMENTE */}
                                     <input type="number" min="0" value={formData.totalValue} onChange={(e) => setFormData({ ...formData, totalValue: e.target.value === '' ? '' : Number(e.target.value) })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-400 outline-none transition-all" placeholder="0" />
                                 </div>
                             </div>

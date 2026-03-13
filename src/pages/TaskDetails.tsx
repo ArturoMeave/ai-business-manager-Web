@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Tag, AlertCircle, DollarSign, AlignLeft, CheckCircle2, Edit2, Trash2, User, FileText, Download, ArrowDownRight, Target } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, AlignLeft, CheckCircle2, Edit2, Trash2, User, FileText } from 'lucide-react';
 import { useTaskStore } from '../stores/taskStores';
 import { useClientStore } from '../stores/clientStore';
 import { useAuthStore } from '../stores/authStore';
@@ -74,7 +74,7 @@ export default function TaskDetails() {
     );
   }
 
-  // ⚡ BUG ARREGLADO: Doble validación para evitar el error "null"
+  
   const taskClientId = task?.client && typeof task.client === 'object' ? (task.client as any)._id : task?.client;
   const associatedClient = clients.find(c => c._id === taskClientId);
 

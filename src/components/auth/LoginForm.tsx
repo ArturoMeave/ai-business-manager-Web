@@ -15,7 +15,6 @@ export default function LoginForm() {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [pendingEmail, setPendingEmail] = useState('');
 
-  // ⚡ NUEVO ESTADO: ¿El usuario está usando la app normal o un código de emergencia?
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   const handleGoogleLogin = useGoogleLogin({
@@ -76,7 +75,6 @@ export default function LoginForm() {
     }
   };
 
-  // ⚡ FUNCIÓN PARA CAMBIAR EL FORMATO DE LA CAJA DE TEXTO
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isRecoveryMode) {
       // En modo recuperación: permitimos letras minúsculas y números, hasta 8
@@ -93,10 +91,9 @@ export default function LoginForm() {
       
       <AnimatePresence mode="wait">
         
-        {/* ---------------- PANTALLA 1: LOGIN NORMAL ---------------- */}
+        {/* PANTALLA 1: LOGIN NORMAL */}
         {step === 'LOGIN' && (
           <motion.div key="login" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            {/* ... (Tu código de la pantalla de login que ya funciona perfecto) ... */}
             <div className="text-center mb-8">
               <div className="w-12 h-12 bg-neutral-900 dark:bg-white rounded-xl flex items-center justify-center mx-auto mb-6 shadow-md">
                 <Sparkles className="w-6 h-6 text-white dark:text-neutral-900" />
@@ -163,10 +160,9 @@ export default function LoginForm() {
           </motion.div>
         )}
 
-        {/* ---------------- PANTALLA 2: RECUPERAR CONTRASEÑA ---------------- */}
+        {/* PANTALLA 2: RECUPERAR CONTRASEÑA */}
         {step === 'FORGOT' && (
           <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-            {/* ... (Tu código de recuperar contraseña intacto) ... */}
             <button onClick={() => setStep('LOGIN')} className="flex items-center text-sm font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white mb-6 transition-colors">
               <ChevronLeft className="w-4 h-4 mr-1" /> Volver
             </button>
@@ -203,7 +199,7 @@ export default function LoginForm() {
           </motion.div>
         )}
 
-        {/* ---------------- PANTALLA 3: LA SALA DE ESPERA (2FA + PARACAÍDAS) ---------------- */}
+        {/* PANTALLA 3: LA SALA DE ESPERA (2FA + PARACAÍDAS) */}
         {step === '2FA' && (
           <motion.div key="2fa" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <button onClick={() => { setStep('LOGIN'); setTwoFactorCode(''); setIsRecoveryMode(false); }} className="flex items-center text-sm font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white mb-6 transition-colors">
@@ -236,7 +232,7 @@ export default function LoginForm() {
 
             <form onSubmit={handle2FASubmit} className="space-y-6">
               <div>
-                {/* ⚡ LA CAJA INTELIGENTE QUE CAMBIA DE TAMAÑO Y LETRAS/NÚMEROS */}
+                {/* Input de código 2FA */}
                 <input 
                   type="text" 
                   maxLength={isRecoveryMode ? 8 : 6} 
@@ -254,7 +250,7 @@ export default function LoginForm() {
               </button>
             </form>
 
-            {/* ⚡ EL BOTÓN MÁGICO PARA ALTERNAR ENTRE MODOS */}
+            {/* Botón para alternar entre modos */}
             <div className="mt-6 text-center">
               <button 
                 type="button" 

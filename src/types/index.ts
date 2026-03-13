@@ -65,13 +65,13 @@ export interface Finance {
     updatedAt?: string;
 }
 
-// ⚡ CORREGIDO: Había un typo ('analitycal' a 'analytical')
+// Tipos para el tono de la IA
 export type AiTone = 'motivational' | 'analytical' | 'strategic';
 
 export interface UserPreferences {
   aiTone?: AiTone; 
-  aiCreativity?: number; // ⚡ AÑADIDO: El nivel de creatividad que pusimos en GeneralTab
-  aiContext?: string;    // ⚡ AÑADIDO: Las instrucciones secretas que pusimos en GeneralTab
+  aiCreativity?: number;
+  aiContext?: string;
   monthlyGoal?: number;
   themeColor?: string;
   role?: 'worker' | 'freelancer' | 'company' | 'god_mode'; 
@@ -86,7 +86,7 @@ export interface UserPreferences {
   iban?: string;
 }
 
-// ⚡ AÑADIDO: Aquí le enseñamos a TypeScript qué forma tiene un dispositivo conectado
+// Interface para un dispositivo conectado
 export interface Session {
   id: string;
   type: string;
@@ -106,7 +106,7 @@ export interface User {
     createdAt?: string;
     updatedAt?: string;
     isTwoFactorEnabled?: boolean;
-    sessions?: Session[]; // ⚡ AÑADIDO: La libreta de dispositivos opcional
+    sessions?: Session[];
 }
 
 export interface AuthResponse {
