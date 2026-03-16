@@ -755,21 +755,27 @@ export default function Tasks() {
                       </span>
                     </div>
 
-                    <div className="hidden sm:block space-y-1.5 mt-2">
-                      {tasksForDay.slice(0, 3).map((task) => (
-                        <div
-                          key={task._id}
-                          className={`text-[10px] p-1.5 rounded-lg truncate font-bold border ${task.status === "completed" ? "opacity-40 grayscale" : getPriorityStyle(task.priority)} shadow-sm`}
-                        >
-                          {task.title}
-                        </div>
-                      ))}
-                      {tasksForDay.length > 3 && (
-                        <p className="text-[9px] font-bold text-neutral-400 text-center">
-                          +{tasksForDay.length - 3} más
-                        </p>
-                      )}
-                    </div>
+                     <div className="hidden sm:block space-y-1.5 mt-2">
+                       {tasksForDay.slice(0, 3).map((task) => (
+                         <div
+                           key={task._id}
+                           draggable
+                           onDragStart={(e) => handleDragStart(e, task._id)}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleEdit(task);
+                           }}
+                           className={`text-[10px] p-1.5 rounded-lg truncate font-bold border cursor-grab active:cursor-grabbing ${task.status === "completed" ? "opacity-40 grayscale" : getPriorityStyle(task.priority)} shadow-sm hover:shadow-md transition-all`}
+                         >
+                           {task.title}
+                         </div>
+                       ))}
+                       {tasksForDay.length > 3 && (
+                         <p className="text-[9px] font-bold text-neutral-400 text-center">
+                           +{tasksForDay.length - 3} más
+                         </p>
+                       )}
+                     </div>
 
                     {/* Puntos estilo iOS en móvil */}
                     <div className="mt-auto flex justify-center gap-0.5">
