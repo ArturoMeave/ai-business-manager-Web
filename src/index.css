@@ -39,3 +39,11 @@
 .animation-delay-2000 {
   animation-delay: 2s;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
