@@ -119,10 +119,15 @@ export default function Tasks() {
     await updateTask(task._id, { status: newStatus });
   };
 
-  const handleAddInDate = (dateString: string) => {
-    setTaskToEdit(null);
-    setSelectedDate(dateString);
-    setIsModalOpen(true);
+  const handleDateSelection = (dateString: string) => {
+    if (selectedDate === dateString) {
+      // Si ya está seleccionado, abrir modal de creación
+      setTaskToEdit(null);
+      setIsModalOpen(true);
+    } else {
+      // Si es un día distinto, solo seleccionar
+      setSelectedDate(dateString);
+    }
   };
 
 
@@ -725,30 +730,29 @@ export default function Tasks() {
                 return (
                   <div
                     key={day}
-                    onClick={() => setSelectedDate(dateString)}
+                    onClick={() => handleDateSelection(dateString)}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDropCalendar(e, dateString)}
-                    className={`min-h-[50px] sm:min-h-[140px] p-1.5 sm:p-3 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
+                    className={`min-h-[60px] sm:min-h-[140px] p-2 sm:p-3 rounded-2xl border transition-all cursor-pointer group relative flex flex-col items-center sm:items-stretch aspect-square sm:aspect-auto ${
                       selectedDate === dateString
                         ? "border-emerald-500 bg-emerald-50/10 dark:bg-emerald-900/10 ring-2 ring-emerald-500"
                         : isToday
                         ? "border-neutral-900 dark:border-white bg-neutral-50/50 dark:bg-neutral-800"
-                        : "border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 bg-white dark:bg-[#1a1a1a]"
+                        : "border-neutral-100 dark:border-neutral-800 hover:border-neutral-200 dark:hover:border-neutral-700 bg-white dark:bg-[#1a1a1a]"
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="flex justify-center sm:justify-between items-center sm:items-start mb-1 w-full">
                       <span
-                        className={`text-xs sm:text-base font-black w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg transition-colors ${
+                        className={`text-sm sm:text-base font-bold w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full transition-all ${
                           isToday
                             ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900"
+                            : selectedDate === dateString
+                            ? "text-emerald-600 dark:text-emerald-400 font-black"
                             : "text-neutral-900 dark:text-neutral-400"
                         }`}
                       >
                         {day}
                       </span>
-                      {tasksForDay.length > 0 && (
-                        <span className="sm:hidden w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5"></span>
-                      )}
                     </div>
 
                     <div className="hidden sm:block space-y-1.5 mt-2">
@@ -767,14 +771,24 @@ export default function Tasks() {
                       )}
                     </div>
 
-                    {/* Indicador visual de carga de trabajo en móvil por colores */}
-                    <div className="sm:hidden absolute bottom-1 right-1 left-1 flex flex-wrap gap-0.5 pointer-events-none">
-                      {tasksForDay.slice(0, 4).map((t) => (
-                        <div
-                          key={t._id}
-                          className={`h-1 flex-1 rounded-full ${t.priority === "high" ? "bg-rose-500" : t.priority === "medium" ? "bg-amber-500" : "bg-blue-500"}`}
-                        ></div>
-                      ))}
+                    {/* Puntos estilo iOS en móvil */}
+                    <div className="mt-auto flex justify-center gap-0.5">
+                      {tasksForDay.length > 0 && (
+                        <div className="flex gap-0.5">
+                          {tasksForDay.slice(0, 3).map((t) => (
+                            <div
+                              key={t._id}
+                              className={`w-1 h-1 rounded-full ${
+                                t.priority === "high"
+                                  ? "bg-rose-500"
+                                  : t.priority === "medium"
+                                  ? "bg-amber-500"
+                                  : "bg-blue-500"
+                              }`}
+                            ></div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -801,16 +815,41 @@ export default function Tasks() {
                 </button>
               </div>
 
-              <div className="space-y-3 min-h-[150px]">
+              <div className="space-y-4 min-h-[150px]">
                 {tasks.filter((t) => t.dueDate === selectedDate).length === 0 ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-neutral-400">
+                  <div className="py-12 flex flex-col items-center justify-center text-neutral-400 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-2xl border-2 border-dashed border-neutral-100 dark:border-neutral-800">
                     <Clock className="w-8 h-8 mb-2 opacity-20" />
-                    <p className="text-sm font-medium">No hay tareas programadas</p>
+                    <p className="text-sm font-medium">No hay eventos para este día</p>
+                    <button 
+                      onClick={() => setIsModalOpen(true)}
+                      className="mt-4 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center"
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Añadir tarea
+                    </button>
                   </div>
                 ) : (
                   tasks
                     .filter((t) => t.dueDate === selectedDate)
-                    .map((task) => renderTaskRow(task))
+                    .map((task) => (
+                      <div 
+                        key={task._id}
+                        onClick={() => handleEdit(task)}
+                        className="flex items-center p-4 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+                      >
+                        <div className={`w-1 h-10 rounded-full mr-4 ${
+                          task.priority === 'high' ? 'bg-rose-500' : 
+                          task.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
+                        }`} />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-neutral-900 dark:text-white">{task.title}</h4>
+                            <span className="text-[10px] font-black uppercase text-neutral-400">{task.dueTime || 'Hoy'}</span>
+                          </div>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 mt-0.5">{task.description || 'Sin descripción'}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 ml-3 text-neutral-300" />
+                      </div>
+                    ))
                 )}
               </div>
             </div>
