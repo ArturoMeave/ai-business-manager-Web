@@ -158,7 +158,7 @@ export default function RegisterForm() {
       {/* Panel derecho — formulario */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-[#050505] relative">
         {/* Enlace volver */}
-        <div className="absolute top-6 left-6">
+        <div className="absolute top-8 left-6 z-20">
           <Link
             to="/"
             className="flex items-center text-sm font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"

@@ -91,6 +91,7 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
   useEffect(() => {
     if (clients.length === 0) fetchClients();
     if (isOpen) {
+      document.body.style.overflow = 'hidden';
       const type = defaultType || 'ingreso';
       setFormData({
         type: type,
@@ -102,8 +103,11 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
         date: new Date().toISOString().split('T')[0],
         client: preselectedClientId || '' 
       });
+    } else {
+      document.body.style.overflow = 'unset';
     }
-  }, [isOpen, defaultType, defaultDescription, preselectedClientId, clients.length]);
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen, defaultType, defaultDescription, preselectedClientId, clients.length, availableCategories]);
 
   const handleTypeChange = (newType: FinanceType) => { 
     setFormData({ ...formData, type: newType, category: availableCategories[newType][0] }); 

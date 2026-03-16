@@ -117,7 +117,7 @@ export default function Landing() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link to="/login" className="hidden sm:block text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
+            <Link to="/login" className="flex text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
               Iniciar Sesión
             </Link>
             <Link to="/register" className="px-5 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg text-sm font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors shadow-sm">
@@ -162,8 +162,8 @@ export default function Landing() {
           transition={{ duration: 1, delay: 0.2, ease: [0.25, 1, 0.5, 1] }} 
           className="mt-24 w-full max-w-6xl relative"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-transparent z-10 h-1/2 bottom-0 pointer-events-none"></div>
-          <div className="bg-neutral-50 dark:bg-[#0A0A0A] rounded-[2rem] border border-neutral-200/80 dark:border-neutral-800 shadow-2xl p-2 md:p-4">
+          <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 via-transparent to-blue-500/10 blur-3xl -z-10 opacity-50"></div>
+          <div className="bg-neutral-50/50 dark:bg-[#0A0A0A]/50 backdrop-blur-sm rounded-[2rem] border border-neutral-200/80 dark:border-neutral-800 shadow-2xl p-2 md:p-4 transition-all">
             <div className="aspect-[16/9] w-full rounded-xl md:rounded-[1.5rem] overflow-hidden border border-neutral-200/50 dark:border-neutral-800/50">
               <img src={heroImg} alt="AI Manager Dashboard" className="w-full h-full object-cover object-top" />
             </div>
@@ -240,13 +240,13 @@ export default function Landing() {
               className="space-y-8"
             >
               {steps.map((step, i) => (
-                <motion.div key={step.number} variants={fadeUp} className="flex gap-6 group">
+                <motion.div key={step.number} variants={fadeUp} className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 group">
                   <div className="flex flex-col items-center">
                     <div className="w-10 h-10 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:border-emerald-400 transition-colors">
                       <span className="text-xs font-black text-neutral-500 dark:text-neutral-400">{step.number}</span>
                     </div>
                     {i < steps.length - 1 && (
-                      <div className="w-px flex-1 bg-neutral-200 dark:bg-neutral-800 mt-3 min-h-[2rem]" />
+                      <div className="hidden sm:block w-px flex-1 bg-neutral-200 dark:bg-neutral-800 mt-3 min-h-[2rem]" />
                     )}
                   </div>
                   <div className="pb-8">
@@ -266,9 +266,9 @@ export default function Landing() {
             >
               <div className="bg-neutral-900 dark:bg-[#0A0A0A] rounded-[2rem] border border-neutral-800 p-10">
                 <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-8">Resultados esperados</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {stats.map(({ value, label }) => (
-                    <div key={label} className="bg-neutral-800/60 dark:bg-neutral-900 rounded-xl p-6 border border-neutral-700/50">
+                    <div key={label} className="bg-neutral-800/60 dark:bg-neutral-900 rounded-xl p-6 border border-neutral-700/50 flex flex-col items-center text-center">
                       <p className="text-3xl font-black text-emerald-400 tracking-tighter mb-2">{value}</p>
                       <p className="text-neutral-400 text-xs font-medium leading-snug">{label}</p>
                     </div>

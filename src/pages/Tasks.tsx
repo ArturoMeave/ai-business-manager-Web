@@ -125,7 +125,7 @@ export default function Tasks() {
     setIsModalOpen(true);
   };
 
-  const handleDayClick = (dateString: string) => handleAddInDate(dateString);
+
 
   const handleDragStart = (e: unknown, id: string) => {
     setDraggedTaskId(id);
@@ -459,8 +459,8 @@ export default function Tasks() {
             exit="exit"
             className="flex flex-col min-h-[500px]"
           >
-            {/* 📱 Selector de Columnas para Móvil */}
-            <div className="flex sm:hidden p-1 bg-neutral-100 dark:bg-neutral-800 rounded-2xl mb-6 shadow-inner transition-colors">
+            {/* 📋 Cabecera Kanban para todas las vistas (opcional, pero ayuda a identificar) */}
+            <div className="hidden sm:flex p-1 bg-neutral-100 dark:bg-neutral-800 rounded-2xl mb-6 shadow-inner transition-colors">
               {kanbanColumns.map((column) => (
                 <button
                   key={column.id}
@@ -476,15 +476,13 @@ export default function Tasks() {
               ))}
             </div>
 
-            <div className="flex gap-6 overflow-x-auto pb-4 sm:flex-row flex-col">
+            <div className="flex gap-4 overflow-x-auto pb-4 sm:flex-row flex-row snap-x snap-mandatory no-scrollbar">
               {kanbanColumns.map((column) => (
                 <div
                   key={column.id}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropKanban(e, column.id)}
-                  className={`flex-shrink-0 w-full sm:w-80 bg-neutral-50/50 dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col transition-all ${
-                    activeKanbanTab === column.id ? "flex" : "hidden sm:flex"
-                  }`}
+                  className={`flex-shrink-0 w-[85vw] sm:w-80 bg-neutral-50/50 dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col transition-all snap-center`}
                 >
                   <div className="p-5 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between">
                     <h3 className="font-bold text-neutral-900 dark:text-white flex items-center">
@@ -697,7 +695,7 @@ export default function Tasks() {
             </div>
 
             <div className="grid grid-cols-7 gap-px mb-2 border-b border-neutral-100 dark:border-neutral-800 pb-2">
-              {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day) => (
+              {["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"].map((day) => (
                 <div
                   key={day}
                   className="text-center text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest"
@@ -727,13 +725,15 @@ export default function Tasks() {
                 return (
                   <div
                     key={day}
-                    onClick={() => handleDayClick(dateString)}
+                    onClick={() => setSelectedDate(dateString)}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDropCalendar(e, dateString)}
-                    className={`min-h-[80px] sm:min-h-[140px] p-1.5 sm:p-3 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
-                      isToday
-                        ? "border-neutral-900 dark:border-white bg-neutral-50/50 dark:bg-neutral-800 ring-2 ring-neutral-900 dark:ring-white ring-offset-2 dark:ring-offset-[#121212]"
-                        : "border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-lg hover:z-10 bg-white dark:bg-[#1a1a1a]"
+                    className={`min-h-[50px] sm:min-h-[140px] p-1.5 sm:p-3 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
+                      selectedDate === dateString
+                        ? "border-emerald-500 bg-emerald-50/10 dark:bg-emerald-900/10 ring-2 ring-emerald-500"
+                        : isToday
+                        ? "border-neutral-900 dark:border-white bg-neutral-50/50 dark:bg-neutral-800"
+                        : "border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 bg-white dark:bg-[#1a1a1a]"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-1">
@@ -779,6 +779,40 @@ export default function Tasks() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* 📱 Panel de Tareas para Móvil (Estilo iPhone) */}
+            <div className="sm:hidden mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-800">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-neutral-900 dark:text-white">
+                  {selectedDate
+                    ? new Date(selectedDate).toLocaleDateString("es-ES", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })
+                    : "Tareas del día"}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="p-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-full shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 min-h-[150px]">
+                {tasks.filter((t) => t.dueDate === selectedDate).length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-neutral-400">
+                    <Clock className="w-8 h-8 mb-2 opacity-20" />
+                    <p className="text-sm font-medium">No hay tareas programadas</p>
+                  </div>
+                ) : (
+                  tasks
+                    .filter((t) => t.dueDate === selectedDate)
+                    .map((task) => renderTaskRow(task))
+                )}
+              </div>
             </div>
           </motion.div>
         )}
