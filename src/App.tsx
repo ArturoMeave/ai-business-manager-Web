@@ -21,14 +21,9 @@ import AiChat from './pages/AiChat';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 
-// AuthWrapper
+// AuthWrapper — el layout de pantalla completa lo gestiona cada componente internamente
 const AuthWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAFAFA] dark:bg-[#050505] relative overflow-hidden">
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-    <div className="relative z-10 w-full flex justify-center">
-      {children}
-    </div>
-  </div>
+  <div className="min-h-screen">{children}</div>
 );
 
 // ProtectedRoute

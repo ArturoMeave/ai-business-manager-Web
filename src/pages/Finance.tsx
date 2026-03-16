@@ -7,7 +7,7 @@ import { api } from '../services/api';
 import { Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Trash2, Calendar, FileText, X, Briefcase, Building, UserCircle, Crown, Calculator, Download, Upload, UploadCloud, Repeat, Archive, ChevronDown, ChevronUp } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import FinanceModal from '../components/crm/FinanceModal';
-import type { Finance, FinanceStatus, FinanceType } from '../types';
+import type { Finance, FinanceType } from '../types';
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -158,9 +158,8 @@ export default function Finance() {
     });
   }, [finances, reportTimeframe]);
 
-  const pdfIncome = filteredFinancesForReport.filter(f => f.type === 'ingreso').reduce((acc, curr) => acc + (curr.amount || 0), 0);
-  const pdfExpense = filteredFinancesForReport.filter(f => f.type === 'gasto').reduce((acc, curr) => acc + (curr.amount || 0), 0);
-  const pdfNet = pdfIncome - pdfExpense;
+  // No se usan estas variables para el renderizado directo, se calculan si se necesitan
+  // o se pueden eliminar si solo se usaban para el reporte de forma interna.
 
   const timeframeLabels = { daily: 'Hoy', weekly: 'Última Semana', monthly: 'Este Mes', yearly: 'Este Año', all: 'Histórico' };
 

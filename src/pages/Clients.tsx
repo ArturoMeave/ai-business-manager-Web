@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Variants } from 'framer-motion';
 import { useClientStore } from '../stores/clientStore';
 import { Plus, Search, Building2, Mail, Phone, Edit2, Trash2, ArrowRight, Filter } from 'lucide-react';
 import Alert from '../components/common/Alert';

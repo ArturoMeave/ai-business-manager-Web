@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 
-// Volvemos al estado original con localhost
-const API_BASE_URL = "http://localhost:3000/api";
+// Usamos variables de entorno para producción, con fallback a localhost para desarrollo
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 class ApiService {
   private api;

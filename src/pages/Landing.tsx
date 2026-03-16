@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion'; 
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bot, PieChart, Users, CheckSquare, Sparkles, ChevronRight, LayoutGrid, ArrowUpRight, Zap, Globe, Shield, Building } from 'lucide-react';
+import { ArrowRight, Bot, PieChart, Users, CheckSquare, Sparkles, LayoutGrid, ArrowUpRight, Zap, Globe, Shield, Building, BarChart2, Lock, TrendingUp } from 'lucide-react';
 
 import heroImg from '../assets/hero-dashboard.png';
 import financeImg from '../assets/finance-bento.png';
@@ -17,6 +17,81 @@ const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
+
+const features = [
+  {
+    icon: Users,
+    title: 'CRM de Clientes',
+    desc: 'Gestiona contactos, historial y documentos de cada cliente en un perfil unificado.',
+    color: 'text-blue-500',
+    bg: 'bg-blue-500/10',
+  },
+  {
+    icon: PieChart,
+    title: 'Gestión Financiera',
+    desc: 'Genera presupuestos, registra movimientos y descarga facturas PDF en segundos.',
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-500/10',
+  },
+  {
+    icon: CheckSquare,
+    title: 'Proyectos y Tareas',
+    desc: 'Vistas de Lista, Kanban o Calendario. Asigna tareas directamente a tus clientes.',
+    color: 'text-violet-500',
+    bg: 'bg-violet-500/10',
+  },
+  {
+    icon: Bot,
+    title: 'Asistente con IA',
+    desc: 'Responde preguntas, redacta correos y analiza tu negocio con lenguaje natural.',
+    color: 'text-amber-500',
+    bg: 'bg-amber-500/10',
+  },
+  {
+    icon: BarChart2,
+    title: 'Panel de Control',
+    desc: 'Dashboard con métricas clave, ventas recientes y actividad de tu equipo en tiempo real.',
+    color: 'text-rose-500',
+    bg: 'bg-rose-500/10',
+  },
+  {
+    icon: Lock,
+    title: 'Seguridad y Acceso',
+    desc: 'Autenticación de dos factores, gestión de sesiones y control de dispositivos activos.',
+    color: 'text-neutral-500',
+    bg: 'bg-neutral-500/10',
+  },
+];
+
+const steps = [
+  {
+    number: '01',
+    title: 'Crea tu cuenta',
+    desc: 'Regístrate en menos de 60 segundos. Solo necesitas tu nombre y email. Sin tarjeta de crédito.',
+  },
+  {
+    number: '02',
+    title: 'Configura tu empresa',
+    desc: 'Añade tus clientes, define tu equipo y personaliza el panel según las necesidades de tu negocio.',
+  },
+  {
+    number: '03',
+    title: 'Conecta tus herramientas',
+    desc: 'Centraliza proyectos, finanzas y clientes en una sola plataforma. Sin doble entrada de datos.',
+  },
+  {
+    number: '04',
+    title: 'Escala con IA',
+    desc: 'Activa el asistente IA para automatizar análisis, responder consultas y tomar mejores decisiones.',
+  },
+];
+
+const stats = [
+  { value: '80%', label: 'Reducción en tiempo de gestión' },
+  { value: '24/7', label: 'Disponibilidad de la plataforma' },
+  { value: '0', label: 'Apps adicionales necesarias' },
+  { value: '10min', label: 'Para configurar tu cuenta' },
+];
 
 export default function Landing() {
   return (
@@ -34,8 +109,9 @@ export default function Landing() {
             </Link>
             
             <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-neutral-600 dark:text-neutral-400">
+              <a href="#funciones" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Funciones</a>
+              <a href="#como-funciona" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Cómo funciona</a>
               <a href="#suite" className="hover:text-neutral-900 dark:hover:text-white transition-colors">La Suite</a>
-              <a href="#beneficios" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Beneficios</a>
               <a href="#precios" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Precios</a>
             </div>
           </div>
@@ -73,8 +149,8 @@ export default function Landing() {
             <Link to="/register" className="w-full sm:w-auto px-8 py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-bold text-base transition-transform hover:scale-[1.02] shadow-lg flex items-center justify-center">
               Crear cuenta gratis <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
-            <a href="#suite" className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-black text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-800 rounded-xl font-bold text-base transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 flex items-center justify-center">
-              Explorar la suite
+            <a href="#como-funciona" className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-black text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-800 rounded-xl font-bold text-base transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 flex items-center justify-center">
+              Ver cómo funciona
             </a>
           </motion.div>
         </motion.div>
@@ -104,6 +180,107 @@ export default function Landing() {
             <div className="flex items-center text-xl font-bold tracking-tight"><Globe className="w-5 h-5 mr-2" /> GlobalTech</div>
             <div className="flex items-center text-xl font-bold tracking-tight"><Shield className="w-5 h-5 mr-2" /> SecureSys</div>
             <div className="flex items-center text-xl font-bold tracking-tight"><Zap className="w-5 h-5 mr-2" /> Velocity</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== NUEVA SECCIÓN: Funciones ===== */}
+      <section id="funciones" className="py-32 px-6 max-w-7xl mx-auto">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} className="text-center max-w-3xl mx-auto mb-20">
+          <div className="inline-flex items-center px-3 py-1 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-[#111] mb-6">
+            <TrendingUp className="w-3.5 h-3.5 mr-2 text-emerald-500" />
+            <span className="text-xs font-bold text-neutral-600 dark:text-neutral-300 uppercase tracking-widest">Funciones</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Todo lo que tu empresa <br className="hidden md:block" />necesita, en un solo lugar.</h2>
+          <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light">Un sistema completo que trabaja solo, para que tú te concentres en lo que importa: hacer crecer tu negocio.</p>
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={staggerContainer}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {features.map(({ icon: Icon, title, desc, color, bg }) => (
+            <motion.div
+              key={title}
+              variants={fadeUp}
+              className="bg-neutral-50 dark:bg-[#0A0A0A] border border-neutral-200 dark:border-neutral-800 rounded-2xl p-8 hover:border-neutral-300 dark:hover:border-neutral-700 hover:-translate-y-1 transition-all duration-300 group"
+            >
+              <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center mb-6`}>
+                <Icon className={`w-6 h-6 ${color}`} />
+              </div>
+              <h3 className="text-lg font-bold mb-3 tracking-tight">{title}</h3>
+              <p className="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed font-light">{desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ===== NUEVA SECCIÓN: Cómo funciona ===== */}
+      <section id="como-funciona" className="py-32 px-6 border-y border-neutral-200 dark:border-neutral-900 bg-neutral-50 dark:bg-[#050505]">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} className="text-center max-w-3xl mx-auto mb-20">
+            <div className="inline-flex items-center px-3 py-1 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111] mb-6">
+              <Sparkles className="w-3.5 h-3.5 mr-2 text-emerald-500" />
+              <span className="text-xs font-bold text-neutral-600 dark:text-neutral-300 uppercase tracking-widest">Cómo funciona</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Listo en menos de 10 minutos.</h2>
+            <p className="text-xl text-neutral-500 dark:text-neutral-400 font-light">Sin instalaciones complicadas. Configura tu entorno y empieza a operar desde el primer día.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Pasos */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={staggerContainer}
+              className="space-y-8"
+            >
+              {steps.map((step, i) => (
+                <motion.div key={step.number} variants={fadeUp} className="flex gap-6 group">
+                  <div className="flex flex-col items-center">
+                    <div className="w-10 h-10 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:border-emerald-400 transition-colors">
+                      <span className="text-xs font-black text-neutral-500 dark:text-neutral-400">{step.number}</span>
+                    </div>
+                    {i < steps.length - 1 && (
+                      <div className="w-px flex-1 bg-neutral-200 dark:bg-neutral-800 mt-3 min-h-[2rem]" />
+                    )}
+                  </div>
+                  <div className="pb-8">
+                    <h3 className="text-lg font-bold mb-2 tracking-tight">{step.title}</h3>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed font-light">{step.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Panel de resultados */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease: [0.25, 1, 0.5, 1] }}
+            >
+              <div className="bg-neutral-900 dark:bg-[#0A0A0A] rounded-[2rem] border border-neutral-800 p-10">
+                <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-8">Resultados esperados</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {stats.map(({ value, label }) => (
+                    <div key={label} className="bg-neutral-800/60 dark:bg-neutral-900 rounded-xl p-6 border border-neutral-700/50">
+                      <p className="text-3xl font-black text-emerald-400 tracking-tighter mb-2">{value}</p>
+                      <p className="text-neutral-400 text-xs font-medium leading-snug">{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 pt-8 border-t border-neutral-800">
+                  <p className="text-neutral-500 text-sm leading-relaxed font-light">
+                    Las empresas que centralizan su gestión reduce el tiempo operativo un 80% y aumentan la satisfacción de sus clientes.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

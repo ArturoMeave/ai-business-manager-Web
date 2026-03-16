@@ -1,5 +1,5 @@
 import { NavLink, useNavigate, Link } from "react-router-dom";
-import { Users, CheckSquare, PieChart, Bot, LogOut, X, Settings as SettingsIcon, ChevronDown, Home, Moon, Sun } from 'lucide-react';
+import { Users, CheckSquare, PieChart, Bot, LogOut, X, Settings as SettingsIcon, Home, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore"; 
 
