@@ -1,7 +1,9 @@
 import axios, { AxiosError } from "axios";
 
-// Usamos variables de entorno para producción, con la URL de Render como fallback
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-business-manager.onrender.com/api";
+// Usamos variables de entorno para producción, con la URL de Render correcta como fallback
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://ai-business-manager-backend.onrender.com/api";
 
 class ApiService {
   private api;
@@ -23,7 +25,7 @@ class ApiService {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     // Interceptor para detectar si la sesión caducó
@@ -34,7 +36,7 @@ class ApiService {
           localStorage.removeItem("auth_token");
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
