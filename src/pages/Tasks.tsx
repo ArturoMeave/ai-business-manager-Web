@@ -481,28 +481,23 @@ export default function Tasks() {
               ))}
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 sm:flex-row flex-row snap-x snap-mandatory no-scrollbar">
+            <div className="flex sm:gap-4 overflow-hidden pb-4 sm:flex-row flex-row w-full">
               {kanbanColumns.map((column) => (
                 <div
                   key={column.id}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropKanban(e, column.id)}
-                  className={`flex-shrink-0 w-[85vw] sm:w-80 bg-neutral-50/50 dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col transition-all snap-center`}
+                  className={`flex-1 sm:flex-none sm:w-80 bg-neutral-50/50 dark:bg-[#121212] rounded-2xl sm:rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col transition-all min-w-0`}
                 >
-                  <div className="p-5 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between">
-                    <h3 className="font-bold text-neutral-900 dark:text-white flex items-center">
-                      {column.id === "pending" && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-neutral-400 mr-2"></span>
-                      )}
-                      {column.id === "in progress" && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></span>
-                      )}
-                      {column.id === "completed" && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2"></span>
-                      )}
-                      {column.title}
+                  <div className="p-2 sm:p-5 border-b border-neutral-100 dark:border-neutral-800/60 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left">
+                    <h3 className="font-black sm:font-bold text-[8px] sm:text-base text-neutral-900 dark:text-white flex items-center uppercase sm:normal-case">
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1 sm:mr-2 ${
+                        column.id === 'pending' ? 'bg-neutral-400' : 
+                        column.id === 'in progress' ? 'bg-blue-500' : 'bg-emerald-500'
+                      }`}></span>
+                      {column.title.split(' ')[0]}
                     </h3>
-                    <span className="px-2.5 py-0.5 bg-neutral-200/50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs font-bold">
+                    <span className="hidden sm:inline-block px-2.5 py-0.5 bg-neutral-200/50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs font-bold">
                       {column.count}
                     </span>
                   </div>
@@ -531,53 +526,50 @@ export default function Tasks() {
                               draggable
                               onDragStart={(e) => handleDragStart(e, task._id)}
                               onClick={() => navigate(`/tasks/${task._id}`)}
-                              className={`bg-white dark:bg-[#1a1a1a] p-4 rounded-2xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${draggedTaskId === task._id ? "opacity-50 scale-95 border-emerald--500" : "border-neutral-200/60 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600"}`}
+                              className={`bg-white dark:bg-[#1a1a1a] p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border transition-all cursor-grab active:cursor-grabbing hover:shadow-md ${draggedTaskId === task._id ? "opacity-50 scale-95 border-emerald-500" : "border-neutral-200/60 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600"}`}
                             >
-                              <div className="flex flex-wrap gap-1.5 mb-3">
-                                <span
-                                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getPriorityStyle(task.priority)}`}
-                                >
-                                  {getPriorityLabel(task.priority)}
-                                </span>
-                                {clientObj && (
-                                  <span
-                                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex items-center ${getClientCategoryStyle(clientObj.category)}`}
-                                  >
-                                    <User className="w-3 h-3 mr-1 opacity-70" />{" "}
-                                    {clientObj.name.split(" ")[0]}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="flex justify-between items-start mb-1">
-                                <h4
-                                  className={`font-bold ${task.status === "completed" ? "text-neutral-400 dark:text-neutral-500 line-through" : "text-neutral-900 dark:text-white"}`}
-                                >
+                              {/* Versión Compacta Móvil */}
+                              <div className="sm:hidden flex flex-col items-center text-center">
+                                <div className={`w-full h-1 rounded-full mb-1 ${
+                                  task.priority === 'high' ? 'bg-rose-500' : 
+                                  task.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
+                                }`} />
+                                <h4 className={`text-[9px] font-bold leading-tight line-clamp-2 ${task.status === "completed" ? "text-neutral-300 line-through" : "text-neutral-900 dark:text-white"}`}>
                                   {task.title}
                                 </h4>
-                                {task.status === "completed" && (
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 flex-shrink-0" />
-                                )}
                               </div>
 
-                              <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
-                                {task.dueDate ? (
-                                  <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-                                    <CalendarIcon className="w-3 h-3 mr-1" />
-                                    {new Date(task.dueDate).toLocaleDateString(
-                                      "es-ES",
-                                      { day: "numeric", month: "short" },
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div />
-                                )}
-                                {task.dueTime && (
-                                  <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-                                    <Clock className="w-3 h-3 mr-1" />{" "}
-                                    {task.dueTime}
-                                  </div>
-                                )}
+                              {/* Versión Completa PC */}
+                              <div className="hidden sm:block">
+                                <div className="flex flex-wrap gap-1.5 mb-3">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getPriorityStyle(task.priority)}`}>
+                                    {getPriorityLabel(task.priority)}
+                                  </span>
+                                  {clientObj && (
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border flex items-center ${getClientCategoryStyle(clientObj.category)}`}>
+                                      <User className="w-3 h-3 mr-1 opacity-70" /> {clientObj.name.split(" ")[0]}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex justify-between items-start mb-1">
+                                  <h4 className={`font-bold ${task.status === "completed" ? "text-neutral-400 dark:text-neutral-500 line-through" : "text-neutral-900 dark:text-white"}`}>
+                                    {task.title}
+                                  </h4>
+                                  {task.status === "completed" && <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 flex-shrink-0" />}
+                                </div>
+                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                                  {task.dueDate ? (
+                                    <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                                      <CalendarIcon className="w-3 h-3 mr-1" />
+                                      {new Date(task.dueDate).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
+                                    </div>
+                                  ) : <div />}
+                                  {task.dueTime && (
+                                    <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                                      <Clock className="w-3 h-3 mr-1" /> {task.dueTime}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </motion.div>
                           );

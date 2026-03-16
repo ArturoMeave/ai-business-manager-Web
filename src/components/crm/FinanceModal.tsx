@@ -129,7 +129,7 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-neutral-900/40 dark:bg-black/60 backdrop-blur-sm transition-colors duration-300" />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-neutral-900/40 dark:bg-black/60 backdrop-blur-sm transition-colors duration-300 touch-none" />
 
           <motion.div 
             initial={{ opacity: 0, y: 100 }} 
@@ -143,7 +143,7 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
               <button onClick={onClose} className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"><X className="w-5 h-5" /></button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar touch-pan-y">
               <div className="flex p-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-xl transition-colors">
                 <button type="button" onClick={() => handleTypeChange('ingreso')} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${formData.type === 'ingreso' ? 'bg-white dark:bg-[#1a1a1a] text-emerald-700 dark:text-emerald-400 shadow-sm' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Ingreso (+€)</button>
                 <button type="button" onClick={() => handleTypeChange('gasto')} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${formData.type === 'gasto' ? 'bg-white dark:bg-[#1a1a1a] text-rose-700 dark:text-rose-400 shadow-sm' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Gasto (-€)</button>
