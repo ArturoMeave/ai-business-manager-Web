@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 
-// Usamos variables de entorno para producción, con fallback a localhost para desarrollo
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+// Usamos variables de entorno para producción, con la URL de Render como fallback
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-business-manager.onrender.com/api";
 
 class ApiService {
   private api;
