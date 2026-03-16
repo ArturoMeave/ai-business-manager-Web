@@ -56,6 +56,7 @@ export interface Finance {
     type: FinanceType;
     amount: number;
     description: string;
+    title?: string;
     status: FinanceStatus;
     date: string;
     category?: string;

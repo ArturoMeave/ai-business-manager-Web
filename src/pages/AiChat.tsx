@@ -147,22 +147,22 @@ export default function AiChat() {
 
       {/* input flotante */}
       <div className="p-4 sm:p-6 bg-white dark:bg-[#121212] border-t border-neutral-100 dark:border-neutral-800 transition-colors">
-        <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto flex items-end shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-[#1a1a1a] focus-within:bg-white dark:focus-within:bg-[#222] focus-within:border-neutral-400 dark:focus-within:border-neutral-500 transition-all">
+        <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto flex items-center shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-[#1a1a1a] focus-within:bg-white dark:focus-within:bg-[#222] focus-within:border-neutral-400 dark:focus-within:border-neutral-500 transition-all">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
-            placeholder="Escribe tu consulta aquí... (Shift + Enter para salto de línea)"
-            className="w-full pl-5 pr-14 py-4 bg-transparent text-neutral-900 dark:text-white text-base placeholder-neutral-400 dark:placeholder-neutral-500 resize-none outline-none max-h-32 min-h-[56px]"
-            rows={input.split('\n').length > 1 ? Math.min(input.split('\n').length, 5) : 1}
+            placeholder="Escribe tu consulta aquí..."
+            className="w-full pl-5 pr-12 py-4 bg-transparent text-neutral-900 dark:text-white text-sm sm:text-base placeholder-neutral-400 dark:placeholder-neutral-500 resize-none outline-none max-h-32 min-h-[56px] leading-relaxed"
+            rows={1}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 bottom-2 p-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-30 transition-all flex items-center justify-center"
+            className="absolute right-2 p-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-20 transition-all flex items-center justify-center shadow-lg active:scale-90"
           >
-            <ArrowUp className="w-5 h-5" strokeWidth={3} />
+            <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
           </button>
         </form>
         <div className="text-center mt-3 flex justify-center space-x-4">

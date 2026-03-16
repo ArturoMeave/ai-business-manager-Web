@@ -321,12 +321,16 @@ export default function Finance() {
                       </div>
                       <div>
                         <h4 className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                          {finance.description}
+                          {finance.title || finance.description}
                           {(finance as any).isArchived && <span className="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-[10px] rounded uppercase tracking-wider">Archivado</span>}
                         </h4>
-                        <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-medium">
-                          <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {formatDate(finance.date)}</span>
-                          <span className="mx-2 opacity-50">•</span><span className="px-2 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-sm">{finance.category}</span>
+                        <div className="flex flex-col mt-0.5">
+                          {finance.title && <p className="text-xs text-neutral-400 dark:text-neutral-500 line-clamp-1 mb-1">{finance.description}</p>}
+                          <div className="flex items-center text-[10px] sm:text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                            <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {formatDate(finance.date)}</span>
+                            <span className="mx-2 opacity-50">•</span>
+                            <span className="px-2 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-sm">{finance.category}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -464,21 +468,80 @@ export default function Finance() {
       <FinanceModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       {/* --------------------------------------------------------------- */}
+      {/* TEMPLATE PARA REPORTE PDF (OCULTO) */}
       <div className="overflow-hidden h-0 w-0 absolute pointer-events-none">
-        <div id="financial-report-template" className="w-[800px] bg-white text-black p-16 font-sans border-0 shadow-none">
+        <div id="financial-report-template" className="w-[800px] bg-white text-black p-12 font-sans border-0 shadow-none">
+          {/* Cabecera del Reporte */}
           <div className="flex justify-between items-start border-b-2 border-neutral-200 pb-8 mb-8">
             <div>
-              <h1 className="text-4xl font-extrabold text-neutral-900 tracking-tight mb-2">REPORTE FINANCIERO</h1>
-              <p className="text-neutral-500 font-bold uppercase tracking-wider">{timeframeLabels[reportTimeframe]}</p>
-              <p className="text-neutral-500 font-medium mt-1">Fecha de emisión: {new Date().toLocaleDateString('es-ES')}</p>
+              <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight mb-1">REPORTE FINANCIERO</h1>
+              <p className="text-neutral-500 font-bold uppercase tracking-wider text-sm">{timeframeLabels[reportTimeframe]}</p>
+              <p className="text-neutral-400 text-xs mt-2">Generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
             </div>
             <div className="text-right">
-              <h3 className="font-bold text-lg text-neutral-900">{user?.name || 'Administración'}</h3>
-              <p className="text-neutral-500">{user?.email}</p>
-              <p className="text-neutral-500 text-sm mt-1">AI Business Manager</p>
+              <h3 className="font-bold text-lg text-neutral-900">{user?.name || 'Usuario'}</h3>
+              <p className="text-neutral-500 text-sm">{user?.email}</p>
+              <p className="text-emerald-600 font-bold text-xs mt-1">AI Business Manager Premium</p>
             </div>
           </div>
-          {/* ... Resto del PDF intacto ... */}
+
+          {/* Resumen de Cifras */}
+          <div className="grid grid-cols-3 gap-6 mb-10">
+            <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100">
+              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">Balance Neto</p>
+              <p className={`text-2xl font-black ${filteredFinancesForReport.reduce((acc, f) => f.type === 'ingreso' ? acc + f.amount : acc - f.amount, 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {formatMoney(filteredFinancesForReport.reduce((acc, f) => f.type === 'ingreso' ? acc + f.amount : acc - f.amount, 0))}
+              </p>
+            </div>
+            <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100">
+              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">Total Ingresos</p>
+              <p className="text-2xl font-black text-emerald-600">
+                {formatMoney(filteredFinancesForReport.filter(f => f.type === 'ingreso').reduce((acc, f) => acc + f.amount, 0))}
+              </p>
+            </div>
+            <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100">
+              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">Total Gastos</p>
+              <p className="text-2xl font-black text-rose-600">
+                {formatMoney(filteredFinancesForReport.filter(f => f.type === 'gasto').reduce((acc, f) => acc + f.amount, 0))}
+              </p>
+            </div>
+          </div>
+
+          {/* Tabla de Movimientos */}
+          <div>
+            <h3 className="text-sm font-black text-neutral-900 uppercase tracking-widest mb-4 border-l-4 border-neutral-900 pl-3">Detalle de Operaciones</h3>
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-neutral-900 text-white font-bold">
+                  <th className="p-3 rounded-tl-xl">Fecha</th>
+                  <th className="p-3">Concepto / Descripción</th>
+                  <th className="p-3">Categoría</th>
+                  <th className="p-3 text-right rounded-tr-xl">Cantidad</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {filteredFinancesForReport.map((f, i) => (
+                  <tr key={f._id} className={i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}>
+                    <td className="p-3 font-medium text-neutral-500">{new Date(f.date).toLocaleDateString('es-ES')}</td>
+                    <td className="p-3">
+                      <p className="font-bold text-neutral-900">{f.title || f.description}</p>
+                      {f.title && <p className="text-[10px] text-neutral-400 italic">{f.description}</p>}
+                    </td>
+                    <td className="p-3"><span className="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-[9px] font-bold uppercase">{f.category}</span></td>
+                    <td className={`p-3 text-right font-black ${f.type === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {f.type === 'ingreso' ? '+' : '-'}{formatMoney(f.amount)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pie de página del Reporte */}
+          <div className="mt-12 pt-8 border-t border-neutral-100 text-center">
+            <p className="text-[10px] text-neutral-400 font-medium">Este documento es un extracto informativo generado automáticamente por AI Business Manager.</p>
+            <p className="text-[10px] text-neutral-300 mt-1">© 2026 AI Business Manager - Todos los derechos reservados.</p>
+          </div>
         </div>
       </div>
     </div>

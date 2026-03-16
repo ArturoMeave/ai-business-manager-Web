@@ -80,7 +80,8 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
   const [formData, setFormData] = useState({ 
     type: 'ingreso' as FinanceType, 
     amount: '' as number | '', 
-    description: '', 
+    description: '',
+    title: '', 
     category: availableCategories.ingreso[0], 
     status: 'completado' as FinanceStatus, 
     date: new Date().toISOString().split('T')[0],
@@ -95,6 +96,7 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
         type: type,
         amount: '',
         description: defaultDescription || '',
+        title: '',
         category: availableCategories[type][0],
         status: 'completado',
         date: new Date().toISOString().split('T')[0],
@@ -159,8 +161,13 @@ export default function FinanceModal({ isOpen, onClose, defaultType, defaultDesc
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Concepto *</label>
-                <input type="text" required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all" placeholder="Ej. Pago de Cliente..." />
+                <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Título del Movimiento (Opcional)</label>
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all" placeholder="Ej. Factura Enero, Compra Material..." />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 block transition-colors">Descripción / Notas *</label>
+                <input type="text" required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-neutral-900 outline-none transition-all" placeholder="Detalles del pago o cobro..." />
               </div>
 
               <div className="grid grid-cols-2 gap-5">

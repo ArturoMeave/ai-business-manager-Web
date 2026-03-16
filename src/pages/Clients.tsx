@@ -123,7 +123,8 @@ export default function Clients() {
       {error && <Alert type="error" message={error} />}
 
       <div className="bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-        <div className="overflow-x-auto">
+        {/* 💻 VISTA DE TABLA (ESCRITORIO) */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-neutral-50/50 dark:bg-[#1a1a1a] text-neutral-500 dark:text-neutral-400 font-semibold text-xs uppercase tracking-wider border-b border-neutral-100 dark:border-neutral-800/60">
               <tr>
@@ -154,16 +155,6 @@ export default function Clients() {
                     </div>
                     <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-1">Sin resultados</h3>
                     <p className="text-neutral-500 dark:text-neutral-400 font-light">No hemos encontrado clientes con estos filtros.</p>
-                    
-                    {/* Botón para limpiar filtros rápidamente si no hay resultados */}
-                    {(searchQuery !== '' || selectedCategory !== 'All' || selectedType !== 'All') && (
-                      <button 
-                        onClick={() => { setSearchQuery(''); setSelectedCategory('All'); setSelectedType('All'); }}
-                        className="mt-4 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        Limpiar filtros
-                      </button>
-                    )}
                   </td>
                 </tr>
               )}
@@ -228,6 +219,60 @@ export default function Clients() {
               </AnimatePresence>
             </tbody>
           </table>
+        </div>
+
+        {/* 📱 VISTA DE TARJETAS (MÓVIL) */}
+        <div className="sm:hidden grid grid-cols-1 divide-y divide-neutral-100 dark:divide-neutral-800/60 p-2">
+          {isLoading && clients.length === 0 && (
+            <div className="py-20 text-center text-neutral-500 dark:text-neutral-400">Cargando...</div>
+          )}
+          
+          {!isLoading && filteredClients.length === 0 && (
+            <div className="py-20 text-center text-neutral-500 dark:text-neutral-400 text-sm">Sin resultados</div>
+          )}
+
+          {filteredClients.map((client) => (
+            <motion.div 
+              key={client._id} 
+              onClick={() => navigate(`/clients/${client._id}`)}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="p-5 active:bg-neutral-50 dark:active:bg-[#1a1a1a] transition-colors flex flex-col space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex items-center justify-center font-bold border border-neutral-200">
+                    {client.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-neutral-900 dark:text-white text-base leading-tight">{client.name}</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center mt-0.5">
+                      <Building2 className="w-3 h-3 mr-1" /> {client.companyName || 'Particular'}
+                    </p>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded border ${getCategoryColor(client.category)}`}>
+                  {client.category}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 bg-neutral-50/50 dark:bg-[#1a1a1a]/50 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-center text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                  <Mail className="w-3.5 h-3.5 mr-2 text-neutral-400" /> {client.email || '—'}
+                </div>
+                <div className="flex items-center text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                  <Phone className="w-3.5 h-3.5 mr-2 text-neutral-400" /> {client.phone || '—'}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex space-x-4">
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(client); }} className="text-xs font-bold text-neutral-500 flex items-center gap-1.5"><Edit2 className="w-3.5 h-3.5" /> Editar</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(client._id); }} className="text-xs font-bold text-rose-500 flex items-center gap-1.5"><Trash2 className="w-3.5 h-3.5" /> Borrar</button>
+                </div>
+                <ArrowRight className="w-4 h-4 text-neutral-400" />
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
 

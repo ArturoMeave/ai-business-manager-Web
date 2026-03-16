@@ -31,9 +31,9 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        <div className="md:col-span-4 space-y-6 sticky top-24">
+        <div className="md:col-span-4 space-y-6 md:sticky md:top-24">
           
-          <div className="bg-white dark:bg-[#121212] p-6 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm relative overflow-hidden transition-colors">
+          <div className="bg-white dark:bg-[#121212] p-6 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm relative overflow-hidden transition-colors hidden md:block">
             <div className="absolute top-0 right-0 w-32 h-32 bg-neutral-50 dark:bg-neutral-800/30 rounded-full mix-blend-multiply filter blur-2xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
             <div className="relative z-10 flex flex-col items-center text-center pt-4">
               <div className="w-20 h-20 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex items-center justify-center font-bold text-3xl shadow-md border-4 border-white dark:border-[#121212] mb-3 transition-colors">
@@ -46,19 +46,19 @@ export default function Settings() {
             </div>
           </div>
 
-          <nav className="bg-white dark:bg-[#121212] p-3 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm transition-colors flex flex-col space-y-1">
+          <nav className="bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md p-2 md:p-3 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-lg md:shadow-sm transition-colors flex flex-row md:flex-col space-x-1 md:space-x-0 md:space-y-1 sticky top-20 z-20 overflow-x-auto no-scrollbar">
             {menuItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center justify-center md:justify-start px-4 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-1 md:flex-none ${
                   activeTab === item.id 
-                    ? 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-900 dark:text-white shadow-sm' 
-                    : 'text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 hover:text-neutral-700 dark:hover:text-neutral-300'
+                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-md' 
+                    : 'text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/40'
                 }`}
               >
-                <item.icon className={`w-4 h-4 mr-3 ${activeTab === item.id ? 'text-emerald--600 dark:text-emerald--400' : 'opacity-70'}`} />
-                {item.label}
+                <item.icon className="w-4 h-4 mr-0 md:mr-3" />
+                <span className="hidden sm:inline ml-2 md:ml-0">{item.label}</span>
               </button>
             ))}
           </nav>
