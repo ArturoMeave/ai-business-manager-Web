@@ -464,18 +464,12 @@ export default function Tasks() {
               {kanbanColumns.map((column) => (
                 <button
                   key={column.id}
-                  onClick={() => {
-                    // Usaremos un estado local para la columna activa en móvil si es necesario,
-                    // pero por ahora podemos filtrar directamente o usar el primer botón como "active"
-                    // Para simplificar, añadiremos un estado 'activeKanbanTab'
-                  }}
+                  onClick={() => setActiveKanbanTab(column.id)}
                   className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
-                    // Placeholder para lógica de active tab
-                    column.id === "pending"
+                    activeKanbanTab === column.id
                       ? "bg-white dark:bg-[#1a1a1a] text-neutral-900 dark:text-white shadow-sm"
                       : "text-neutral-500"
                   }`}
-                  id={`tab-btn-${column.id}`} // Usado para referenciar en la lógica de abajo
                 >
                   {column.title} ({column.count})
                 </button>
@@ -489,9 +483,7 @@ export default function Tasks() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropKanban(e, column.id)}
                   className={`flex-shrink-0 w-full sm:w-80 bg-neutral-50/50 dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col transition-all ${
-                    // En móvil, solo mostramos la columna que queramos, o todas apiladas.
-                    // El usuario pidió "ordenada y precisa sin deslizar", así que apilarlas verticalmente es mejor.
-                    "block"
+                    activeKanbanTab === column.id ? "flex" : "hidden sm:flex"
                   }`}
                 >
                   <div className="p-5 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between">
