@@ -46,7 +46,6 @@ export default function Tasks() {
     currentPage,
     totalPages,
     setFilters,
-    filters,
   } = useTaskStore();
   const { clients, fetchClients } = useClientStore();
 
