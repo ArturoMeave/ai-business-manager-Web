@@ -5,6 +5,8 @@ import {
   Calendar,
   Clock,
   Edit2,
+  CheckCircle,
+  Trash2,
   CheckCircle2,
   AlertCircle,
   User,
@@ -32,7 +34,7 @@ export default function TaskModal({
   defaultTime,
   preselectedClientId,
 }: TaskModalProps) {
-  const { addTask, updateTask, isLoading } = useTaskStore();
+  const { addTask, updateTask, deleteTask, isLoading } = useTaskStore();
   const { clients, fetchClients } = useClientStore();
 
   const [modalMode, setModalMode] = useState<"create" | "view" | "edit">(
@@ -159,13 +161,38 @@ export default function TaskModal({
                     : "Nueva Tarea"}
               </h2>
               <div className="flex items-center space-x-2">
-                {modalMode === "view" && (
-                  <button
-                    onClick={() => setModalMode("edit")}
-                    className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
-                  >
-                    <Edit2 className="w-5 h-5" />
-                  </button>
+                {modalMode === "view" && taskToEdit && (
+                  <>
+                    <button
+                      onClick={async () => {
+                        await updateTask(taskToEdit._id, { status: "completed" });
+                        onClose();
+                      }}
+                      className="p-2 text-neutral-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors"
+                      title="Completar tarea"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
+                          await deleteTask(taskToEdit._id);
+                          onClose();
+                        }
+                      }}
+                      className="p-2 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors"
+                      title="Eliminar tarea"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setModalMode("edit")}
+                      className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+                      title="Editar tarea"
+                    >
+                      <Edit2 className="w-5 h-5" />
+                    </button>
+                  </>
                 )}
                 <button
                   type="button"
