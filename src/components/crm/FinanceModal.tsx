@@ -14,7 +14,7 @@ interface FinanceModalProps {
   preselectedClientId?: string;
 }
 
-// ⚡ CATEGORÍAS 100% REALES Y COTIDIANAS
+// Standard everyday categories
 const CATEGORIES_BY_ROLE = {
   worker: { 
     ingreso: [

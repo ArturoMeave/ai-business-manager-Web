@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  // 🚪 Inicio de Sesión Estándar
+  // Standard login flow
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // 🌐 Inicio de Sesión con Google
+  // Google OAuth login
   googleLogin: async (googleToken: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // 📝 Registro de Usuario
+  // User registration
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
@@ -102,7 +102,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // 👋 Cierre de Sesión Completo
+  // Full logout
   logout: async () => {
     try {
       await api.post('/auth/logout');
@@ -116,7 +116,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // 🔄 Cargar Usuario al recargar la página
+  // Persistent auth on reload
   loadUser: async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) return;
@@ -132,7 +132,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // 🔐 Verificación de 2FA
+  // 2FA verification logic
   verify2FALogin: async (email: string, token: string) => {
     set({ isLoading: true, error: null });
     try {

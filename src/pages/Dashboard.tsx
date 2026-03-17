@@ -260,7 +260,7 @@ export default function Dashboard() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {dashboardTasks.length === 0 ? (
-              <div className="md:col-span-2 text-center py-8 text-neutral-500">No hay tareas pendientes en tu radar. ¡Día libre! 🎉</div>
+              <div className="md:col-span-2 text-center py-8 text-neutral-500">No hay tareas pendientes en tu radar. Día libre.</div>
             ) : (
               dashboardTasks.map(task => {
                 let label = '';

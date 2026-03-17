@@ -93,12 +93,12 @@ export default function Clients() {
                 className="w-full pl-9 pr-8 py-2.5 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-medium text-neutral-700 dark:text-neutral-300 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white outline-none transition-all shadow-sm appearance-none cursor-pointer"
               >
                 <option value="All">Todas las categorías</option>
-                <option value="VIP"> VIP</option>
-                <option value="Active"> Activo</option>
-                <option value="Potencial"> Potencial</option>
-                <option value="Prospect"> Prospecto</option>
-                <option value="General"> General</option>
-                <option value="Inactive"> Inactivo</option>
+                <option value="VIP">VIP</option>
+                <option value="Active">Activo</option>
+                <option value="Potencial">Potencial</option>
+                <option value="Prospect">Prospecto</option>
+                <option value="General">General</option>
+                <option value="Inactive">Inactivo</option>
               </select>
             </div>
 
@@ -108,8 +108,8 @@ export default function Clients() {
               className="w-1/2 lg:w-auto px-4 py-2.5 bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-medium text-neutral-700 dark:text-neutral-300 focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white outline-none transition-all shadow-sm cursor-pointer"
             >
               <option value="All">Todos los tipos</option>
-              <option value="Company"> Empresas</option>
-              <option value="Individual"> Particulares</option>
+              <option value="Company">Empresas</option>
+              <option value="Individual">Particulares</option>
             </select>
           </div>
 

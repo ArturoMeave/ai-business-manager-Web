@@ -8,18 +8,18 @@ export default function GeneralTab() {
   const { user, updatePreferences, isLoading, loadUser } = useAuthStore();
   const [successMsg, setSuccessMsg] = useState('');
 
-  // 👤 Info Personal
+  // Personal Information
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
-  // 🏢 Info Empresa
+  // Company Information
   const [companyName, setCompanyName] = useState('');
   const [taxId, setTaxId] = useState('');
   const [currency, setCurrency] = useState('€');
   const [monthlyGoal, setMonthlyGoal] = useState<number>(0);
 
-  // 🤖 Info IA
+  // AI Information
   const [aiTone, setAiTone] = useState<'motivational' | 'analytical' | 'strategic'>('strategic');
   const [aiCreativity, setAiCreativity] = useState(50);
   const [aiContext, setAiContext] = useState('');
@@ -72,7 +72,7 @@ export default function GeneralTab() {
         </motion.div>
       )}
 
-      {/* ================= SECCIÓN 1: PERFIL PERSONAL ================= */}
+      {/* Personal Profile Section */}
       <div className="bg-white dark:bg-[#121212] p-8 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm transition-colors relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
         <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-6 flex items-center">
@@ -100,7 +100,7 @@ export default function GeneralTab() {
         </div>
       </div>
 
-      {/* ================= SECCIÓN 2: DETALLES DEL NEGOCIO ================= */}
+      {/* Business Details Section */}
       <div className="bg-white dark:bg-[#121212] p-8 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm transition-colors relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl"></div>
         <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-6 flex items-center">
@@ -141,7 +141,7 @@ export default function GeneralTab() {
         </div>
       </div>
 
-      {/* ================= SECCIÓN 3: CEREBRO IA ================= */}
+      {/* AI Configuration Section */}
       <div className="bg-white dark:bg-[#121212] p-8 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm transition-colors relative overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl"></div>
         

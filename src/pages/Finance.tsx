@@ -65,7 +65,10 @@ export default function Finance() {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.length > 0) return parsed;
-      } catch (e) {}
+      } catch (error) {
+        console.error("Error parsing simulator data from localStorage:", error);
+        localStorage.removeItem('ai_manager_simulator');
+      }
     }
     return [
       { id: generateId(), type: 'ingreso', name: 'Ej. Factura Cliente', amount: 1200, isFixed: false },
@@ -202,7 +205,7 @@ export default function Finance() {
           case 'freelancer': return <><Briefcase className="w-3.5 h-3.5 mr-1.5" /> Autónomo</>;
           case 'company': return <><Building className="w-3.5 h-3.5 mr-1.5" /> Empresa</>;
           case 'worker': return <><UserCircle className="w-3.5 h-3.5 mr-1.5" /> Trabajador</>;
-          default: return <><Crown className="w-3.5 h-3.5 mr-1.5 text-yellow-600" /> Modo Dios</>;
+          default: return <><Crown className="w-3.5 h-3.5 mr-1.5 text-yellow-600" /> Panel Financiero</>;
       }
   };
 
