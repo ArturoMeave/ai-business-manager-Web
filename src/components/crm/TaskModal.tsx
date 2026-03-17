@@ -9,11 +9,19 @@ interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   taskToEdit?: Task | null;
-  defaultDate?: string | null; 
-  preselectedClientId?: string; 
+  defaultDate?: string | null;
+  defaultTime?: string | null;
+  preselectedClientId?: string;
 }
 
-export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, preselectedClientId }: TaskModalProps) {
+export default function TaskModal({ 
+  isOpen, 
+  onClose, 
+  taskToEdit, 
+  defaultDate, 
+  defaultTime,
+  preselectedClientId 
+}: TaskModalProps) {
   const { addTask, updateTask, isLoading } = useTaskStore();
   const { clients, fetchClients } = useClientStore();
 
@@ -37,10 +45,11 @@ export default function TaskModal({ isOpen, onClose, taskToEdit, defaultDate, pr
       setFormData({ 
         title: '', description: '', status: 'pending', priority: 'medium', category: 'Llamada', budget: '', 
         client: preselectedClientId || '', 
-        dueDate: defaultDate || new Date().toISOString().split('T')[0], dueTime: '' 
+        dueDate: defaultDate || new Date().toISOString().split('T')[0], 
+        dueTime: defaultTime || '' 
       });
     }
-  }, [taskToEdit, isOpen, clients.length, defaultDate, preselectedClientId]);
+  }, [taskToEdit, isOpen, clients.length, defaultDate, defaultTime, preselectedClientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
