@@ -51,7 +51,16 @@ export default function Tasks() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split("T")[0]);
+  
+  // Solución 1: Helper para formatear fechas locales YYYY-MM-DD sin desfase UTC
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(formatLocalDate(new Date()));
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<"calendar" | "archive">("calendar");
@@ -130,8 +139,8 @@ export default function Tasks() {
   const goToToday = () => setBaseDate(new Date());
 
   // --- Helpers de Fecha ---
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
-  const isToday = (date: Date) => formatDate(date) === formatDate(new Date());
+  const formatDate = (date: Date) => formatLocalDate(date); // Usamos el helper local
+  const isToday = (date: Date) => formatDate(date) === formatLocalDate(new Date());
   
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getStartDayOfMonth = (year: number, month: number) => {
@@ -192,7 +201,7 @@ export default function Tasks() {
     const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
         {months.map((monthName, mIdx) => {
           const daysInMonth = getDaysInMonth(year, mIdx);
           const startDay = getStartDayOfMonth(year, mIdx);
@@ -217,7 +226,7 @@ export default function Tasks() {
                   return (
                     <div
                       key={day}
-                      onClick={() => setSelectedDate(dateStr)} // Solo seleccionar para el Tooltip visual
+                      onClick={() => setSelectedDate(dateStr)}
                       onDoubleClick={() => {
                         setBaseDate(new Date(year, mIdx, day));
                         setCalendarView("day");
@@ -232,7 +241,6 @@ export default function Tasks() {
                           <div className={`w-1 h-1 rounded-full ${isCurToday ? "bg-emerald-400" : "bg-emerald-500"}`} />
                         </div>
                       )}
-                      {/* Tooltip Simplificado Popover */}
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50">
                         <div className="bg-neutral-900 text-white text-[10px] py-1 px-3 rounded-xl whitespace-nowrap shadow-xl">
                           {tasksOnDay.length > 0 ? `${tasksOnDay.length} tareas` : "Sin tareas"}
@@ -255,7 +263,7 @@ export default function Tasks() {
     const month = baseDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
     const startDay = getStartDayOfMonth(year, month);
-    const todayStr = formatDate(new Date());
+    const todayStr = formatLocalDate(new Date());
 
     return (
       <div className="flex flex-col">
@@ -314,29 +322,31 @@ export default function Tasks() {
 
     return (
       <div className="flex flex-col h-full overflow-hidden">
-        {/* Header de días */}
-        <div className="flex ml-16 border-b border-neutral-100 dark:border-neutral-800 pb-4">
-          {days.map((day) => (
-            <div key={day.toISOString()} className="flex-1 text-center">
-              <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
-                {day.toLocaleDateString("es-ES", { weekday: "short" })}
+        {/* Header de días - Scroll horizontal en móvil */}
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className={`flex ml-16 border-b border-neutral-100 dark:border-neutral-800 pb-4 ${calendarView === 'week' ? 'min-w-[700px]' : ''}`}>
+            {days.map((day) => (
+              <div key={day.toISOString()} className="flex-1 text-center">
+                <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
+                  {day.toLocaleDateString("es-ES", { weekday: "short" })}
+                </div>
+                <div className={`mx-auto w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold ${
+                  isToday(day) ? "bg-neutral-950 dark:bg-white text-white dark:text-neutral-900 shadow-md" : "text-neutral-900 dark:text-white"
+                }`}>
+                  {day.getDate()}
+                </div>
               </div>
-              <div className={`mx-auto w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold ${
-                isToday(day) ? "bg-neutral-950 dark:bg-white text-white dark:text-neutral-900 shadow-md" : "text-neutral-900 dark:text-white"
-              }`}>
-                {day.getDate()}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Grid de Horas Scrollable */}
         <div className="flex-1 overflow-y-auto mt-4 pr-1 scrollbar-hide">
-          <div className="relative flex">
+          <div className={`relative flex ${calendarView === 'week' ? 'min-w-[700px]' : ''}`}>
             {/* Eje de Horas */}
             <div className="w-16 flex-shrink-0">
               {hours.map((hour) => (
-                <div key={hour} className="h-20 -mt-2 text-[10px] font-bold text-neutral-400 flex justify-center items-start pt-1">
+                <div key={hour} className="h-20 text-[10px] font-bold text-neutral-400 flex justify-center items-start pt-1">
                   {hour}
                 </div>
               ))}
@@ -345,14 +355,19 @@ export default function Tasks() {
             {/* Columnas de Días */}
             <div className={`flex-1 grid ${calendarView === 'week' ? 'grid-cols-7' : 'grid-cols-1'} divide-x divide-neutral-100 dark:divide-neutral-800`}>
               {days.map((day) => {
-                const dayDateStr = formatDate(day);
+                const dayDateStr = formatLocalDate(day);
                 const dailyTasks = allFilteredTasks.filter(t => t.dueDate === dayDateStr);
 
                 return (
                   <div key={day.toISOString()} className="relative divide-y divide-neutral-50 dark:divide-neutral-800/50">
                     {hours.map((hour) => {
                       const hourNum = parseInt(hour.split(":")[0]);
-                      const slotTasks = dailyTasks.filter(t => t.dueTime && parseInt(t.dueTime.split(":")[0]) === hourNum);
+                      // Solución 2: Obtener tareas usando estrictamente el hourIndex del dueTime
+                      const slotTasks = dailyTasks.filter(t => {
+                        if (!t.dueTime) return false;
+                        const taskHour = parseInt(t.dueTime.split(':')[0], 10);
+                        return taskHour === hourNum;
+                      });
                       
                       return (
                         <div
@@ -360,12 +375,11 @@ export default function Tasks() {
                           onClick={() => handleDateSelection(dayDateStr, hour)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDropCalendar(e, dayDateStr)}
-                          className="h-20 p-1 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer group relative"
+                          className="min-h-[80px] p-1 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer group relative"
                         >
                           <div className="flex flex-col gap-1">
                             {slotTasks.map(t => <TaskPill key={t._id} task={t} />)}
                           </div>
-                          {/* Botón flotante al pasar el mouse */}
                           <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Plus className="w-3 h-3 text-neutral-300" />
                           </div>
@@ -385,7 +399,7 @@ export default function Tasks() {
   // --- JSX Principal ---
 
   return (
-    <div className="space-y-8 pb-10 max-w-7xl mx-auto transition-colors duration-300">
+    <div className="space-y-8 pb-10 max-w-7xl mx-auto transition-colors duration-300 px-4 md:px-0">
       {/* Header Superior */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
@@ -543,7 +557,7 @@ export default function Tasks() {
                   <button onClick={navigateNext} className="p-2 rounded-xl hover:bg-white dark:hover:bg-neutral-800 shadow-sm transition-all"><ChevronRight className="w-5 h-5 text-neutral-600 dark:text-neutral-300" /></button>
                 </div>
                 <button
-                  onClick={() => handleDateSelection(formatDate(baseDate))}
+                  onClick={() => handleDateSelection(formatLocalDate(baseDate))}
                   className="p-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
                   <Plus className="w-6 h-6" />
